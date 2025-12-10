@@ -60,11 +60,11 @@ MIN_RMS_DB = -35.0     # Minimum acceptable RMS
 MAX_RMS_DB = -10.0     # Maximum acceptable RMS (avoid clipping)
 MIN_SNR_DB = 20.0      # Minimum signal-to-noise ratio
 
-# Silence detection
-SILENCE_THRESHOLD_DB = -40.0
-MIN_SILENCE_DURATION = 0.1  # seconds
-TARGET_LEADING_SILENCE = 0.1  # Target silence at start
-TARGET_TRAILING_SILENCE = 0.1  # Target silence at end
+# Silence detection - Conservative thresholds to avoid cutting speech
+SILENCE_THRESHOLD_DB = -50.0   # More conservative (was -40), only trim actual silence
+MIN_SILENCE_DURATION = 0.3     # Only trim silence longer than 300ms (was 100ms)
+TARGET_LEADING_SILENCE = 0.15  # Target silence at start (150ms)
+TARGET_TRAILING_SILENCE = 0.15 # Target silence at end (150ms)
 
 # LUFS normalization thresholds
 MIN_VALID_LOUDNESS = -70.0  # Below this, audio is essentially silent
@@ -367,7 +367,8 @@ def trim_silence(input_path: str, output_path: str,
                  threshold_db: float = SILENCE_THRESHOLD_DB, 
                  min_silence_duration: float = MIN_SILENCE_DURATION,
                  target_leading: float = TARGET_LEADING_SILENCE,
-                 target_trailing: float = TARGET_TRAILING_SILENCE) -> bool:
+                 target_trailing: float = TARGET_TRAILING_SILENCE,
+                 gentle: bool = True) -> bool:
     """
     Trim leading and trailing silence from audio file using ffmpeg.
     Maintains consistent silence padding at start and end.
@@ -375,19 +376,27 @@ def trim_silence(input_path: str, output_path: str,
     Args:
         input_path: Path to input audio file
         output_path: Path to output file
-        threshold_db: Silence threshold in dB (default: -40)
-        min_silence_duration: Minimum silence duration in seconds
+        threshold_db: Silence threshold in dB (default: -50, conservative)
+        min_silence_duration: Minimum silence duration in seconds (default: 0.3)
         target_leading: Target silence at beginning (seconds)
         target_trailing: Target silence at end (seconds)
+        gentle: If True, use even more conservative settings to avoid cutting speech
     
     Returns:
         True if successful
     """
     try:
-        # First, trim all silence
+        # In gentle mode, use very conservative settings
+        if gentle:
+            threshold_db = min(threshold_db, -55.0)  # Very quiet threshold
+            min_silence_duration = max(min_silence_duration, 0.5)  # Only trim long silences
+        
+        # First, trim only very long leading/trailing silence
         temp_path = output_path + '.temp.wav'
         
-        # Use ffmpeg silenceremove filter
+        # Use ffmpeg silenceremove filter - only remove leading/trailing silence
+        # start_periods=1 means remove silence only from the start once
+        # stop_periods=1 means remove silence only from the end once
         cmd = [
             'ffmpeg', '-y', '-i', input_path,
             '-af', f'silenceremove=start_periods=1:start_duration={min_silence_duration}:'
@@ -398,8 +407,20 @@ def trim_silence(input_path: str, output_path: str,
         ]
         subprocess.run(cmd, capture_output=True, check=True)
         
+        # Check if the trimmed file is too short (speech got cut)
+        orig_info = get_audio_info(input_path)
+        trimmed_info = get_audio_info(temp_path)
+        
+        if orig_info and trimmed_info:
+            # If more than 30% was cut, the trimming was too aggressive - use original
+            if trimmed_info['duration'] < orig_info['duration'] * 0.7:
+                print(f"Warning: Trimming removed >30% of audio, keeping original")
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                shutil.copy2(input_path, output_path)
+                return True
+        
         # Add back consistent padding
-        # Get sample rate from temp file
         info = get_audio_info(temp_path)
         if info:
             # Add padding using adelay and apad filters
@@ -411,13 +432,21 @@ def trim_silence(input_path: str, output_path: str,
                 output_path
             ]
             subprocess.run(cmd_pad, capture_output=True, check=True)
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
         else:
             os.rename(temp_path, output_path)
         
         return True
     except Exception as e:
         print(f"Trim error: {e}")
+        # On any error, just copy the original file
+        try:
+            shutil.copy2(input_path, output_path)
+            print(f"Warning: Trim failed, copied original file")
+            return True
+        except Exception as copy_err:
+            print(f"Failed to copy original file: {copy_err}")
         # Clean up temp file if exists
         if os.path.exists(temp_path):
             os.remove(temp_path)

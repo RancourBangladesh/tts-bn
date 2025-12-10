@@ -118,11 +118,17 @@ Open http://localhost:5000 in your browser.
 ### Process Recorded Audio
 
 ```bash
-# Full processing pipeline (normalize, trim silence)
+# Full processing pipeline (normalize only, no trimming - RECOMMENDED for careful recordings)
+python audio_utils.py --process --input dataset/recordings --output dataset/processed/wav_22k_mono --no-trim
+
+# Full processing with silence trimming (only if you have long silences)
 python audio_utils.py --process --input dataset/recordings --output dataset/processed/wav_22k_mono
 
 # With specific settings
-python audio_utils.py --process --sample-rate 22050 --target-lufs -14
+python audio_utils.py --process --sample-rate 22050 --target-lufs -14 --no-trim
+
+# Skip both trimming and normalization (just convert format)
+python audio_utils.py --process --no-trim --no-normalize
 
 # Filter out low-quality recordings
 python audio_utils.py --filter --input dataset/recordings --output dataset/filtered --strict
@@ -136,6 +142,8 @@ python audio_utils.py --check path/to/audio.wav
 # Find duplicate recordings
 python audio_utils.py --find-duplicates --input dataset/recordings
 ```
+
+**⚠️ Important:** If you recorded carefully without long pauses, use `--no-trim` to avoid cutting your speech. The trimming feature is only needed if you have unwanted silence at the start/end of recordings.
 
 ### Prepare Training Data
 

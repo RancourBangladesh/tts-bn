@@ -68,6 +68,35 @@ TARGET_TRAILING_SILENCE = 0.1  # Target silence at end
 
 def get_audio_info(filepath: str) -> Optional[Dict]:
     """Get basic audio file information."""
+    # Try soundfile first (handles more formats including WAVE_FORMAT_EXTENSIBLE)
+    if HAS_SOUNDFILE:
+        try:
+            info = sf.info(filepath)
+            # Extract bit depth from subtype (e.g., 'PCM_16' -> 16)
+            bits = 16  # Default
+            try:
+                subtype = info.subtype
+                if 'PCM_16' in subtype or '16' in subtype:
+                    bits = 16
+                elif 'PCM_24' in subtype or '24' in subtype:
+                    bits = 24
+                elif 'PCM_32' in subtype or '32' in subtype:
+                    bits = 32
+                elif 'FLOAT' in subtype:
+                    bits = 32
+            except Exception:
+                pass
+            return {
+                'channels': info.channels,
+                'sample_rate': info.samplerate,
+                'bits': bits,
+                'frames': info.frames,
+                'duration': info.duration
+            }
+        except Exception:
+            pass  # Fall through to wave module
+    
+    # Fallback to wave module
     try:
         with wave.open(filepath, 'rb') as w:
             return {
@@ -376,6 +405,15 @@ def check_clipping(filepath: str, threshold: float = 0.99) -> Tuple[bool, float]
         return (False, 0.0)
     
     try:
+        # Use soundfile if available (handles more formats)
+        if HAS_SOUNDFILE:
+            samples, _ = sf.read(filepath, dtype='float32')
+            if len(samples.shape) > 1:
+                samples = samples.mean(axis=1)  # Convert to mono
+            peak = float(np.max(np.abs(samples)))
+            return (peak >= threshold, peak)
+        
+        # Fallback to wave module
         with wave.open(filepath, 'rb') as w:
             frames = w.readframes(w.getnframes())
             if w.getsampwidth() == 2:  # 16-bit
@@ -407,6 +445,19 @@ def calculate_rms(filepath: str) -> Optional[float]:
         return None
     
     try:
+        # Use soundfile if available (handles more formats)
+        if HAS_SOUNDFILE:
+            samples, _ = sf.read(filepath, dtype='float32')
+            if len(samples.shape) > 1:
+                samples = samples.mean(axis=1)  # Convert to mono
+            
+            rms = np.sqrt(np.mean(samples ** 2))
+            if rms > 0:
+                rms_db = 20 * math.log10(rms)
+                return rms_db
+            return -100.0
+        
+        # Fallback to wave module
         with wave.open(filepath, 'rb') as w:
             frames = w.readframes(w.getnframes())
             if w.getsampwidth() == 2:
@@ -463,39 +514,46 @@ def estimate_snr(filepath: str) -> Optional[float]:
         return None
     
     try:
-        with wave.open(filepath, 'rb') as w:
-            frames = w.readframes(w.getnframes())
-            sample_rate = w.getframerate()
-            
-            if w.getsampwidth() == 2:
-                samples = np.frombuffer(frames, dtype=np.int16).astype(float)
-                samples /= 32767.0
-            else:
-                samples = np.frombuffer(frames, dtype=np.uint8).astype(float)
-                samples = (samples - 128) / 128.0
-            
-            # Calculate RMS in windows
-            window_size = int(0.025 * sample_rate)  # 25ms windows
-            hop_size = int(0.010 * sample_rate)  # 10ms hop
-            
-            rms_values = []
-            for i in range(0, len(samples) - window_size, hop_size):
-                window = samples[i:i + window_size]
-                rms = np.sqrt(np.mean(window ** 2))
-                if rms > 0:
-                    rms_values.append(20 * math.log10(rms))
-            
-            if not rms_values:
-                return None
-            
-            # Estimate noise floor as 10th percentile
-            noise_floor = np.percentile(rms_values, 10)
-            # Estimate signal as 90th percentile
-            signal_level = np.percentile(rms_values, 90)
-            
-            snr = signal_level - noise_floor
-            return float(snr)
-            
+        # Use soundfile if available (handles more formats)
+        if HAS_SOUNDFILE:
+            samples, sample_rate = sf.read(filepath, dtype='float32')
+            if len(samples.shape) > 1:
+                samples = samples.mean(axis=1)  # Convert to mono
+        else:
+            # Fallback to wave module
+            with wave.open(filepath, 'rb') as w:
+                frames = w.readframes(w.getnframes())
+                sample_rate = w.getframerate()
+                
+                if w.getsampwidth() == 2:
+                    samples = np.frombuffer(frames, dtype=np.int16).astype(float)
+                    samples /= 32767.0
+                else:
+                    samples = np.frombuffer(frames, dtype=np.uint8).astype(float)
+                    samples = (samples - 128) / 128.0
+        
+        # Calculate RMS in windows
+        window_size = int(0.025 * sample_rate)  # 25ms windows
+        hop_size = int(0.010 * sample_rate)  # 10ms hop
+        
+        rms_values = []
+        for i in range(0, len(samples) - window_size, hop_size):
+            window = samples[i:i + window_size]
+            rms = np.sqrt(np.mean(window ** 2))
+            if rms > 0:
+                rms_values.append(20 * math.log10(rms))
+        
+        if not rms_values:
+            return None
+        
+        # Estimate noise floor as 10th percentile
+        noise_floor = np.percentile(rms_values, 10)
+        # Estimate signal as 90th percentile
+        signal_level = np.percentile(rms_values, 90)
+        
+        snr = signal_level - noise_floor
+        return float(snr)
+        
     except Exception as e:
         print(f"SNR estimation error: {e}")
         return None

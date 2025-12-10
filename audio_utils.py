@@ -16,6 +16,7 @@ import argparse
 import subprocess
 import json
 import unicodedata
+import shutil
 from pathlib import Path
 from typing import Optional, Tuple, List, Dict, Set
 import wave
@@ -64,6 +65,10 @@ SILENCE_THRESHOLD_DB = -40.0
 MIN_SILENCE_DURATION = 0.1  # seconds
 TARGET_LEADING_SILENCE = 0.1  # Target silence at start
 TARGET_TRAILING_SILENCE = 0.1  # Target silence at end
+
+# LUFS normalization thresholds
+MIN_VALID_LOUDNESS = -70.0  # Below this, audio is essentially silent
+MAX_VALID_OFFSET = 50.0     # Above this absolute value, offset is unreasonable
 
 
 def get_audio_info(filepath: str) -> Optional[Dict]:
@@ -194,14 +199,54 @@ def normalize_lufs(input_path: str, output_path: str,
         if json_start != -1 and json_end > json_start:
             measurements = json.loads(output[json_start:json_end])
             
-            # Second pass: normalize with measured values
+            # Check for invalid measurements (silent/near-silent audio)
+            input_i = measurements.get('input_i', -24)
+            input_lra = measurements.get('input_lra', 7)
+            input_tp = measurements.get('input_tp', -2)
+            input_thresh = measurements.get('input_thresh', -34)
+            target_offset = measurements.get('target_offset', 0)
+            
+            # Handle infinite/invalid values
+            # -inf or inf values indicate silent or problematic audio
+            try:
+                input_i_float = float(input_i)
+                target_offset_float = float(target_offset)
+                
+                # Check for infinity or very extreme values using math.isinf()
+                if (math.isinf(input_i_float) or
+                    input_i_float < MIN_VALID_LOUDNESS or  # Essentially silent
+                    math.isinf(target_offset_float) or
+                    abs(target_offset_float) > MAX_VALID_OFFSET):  # Unreasonable offset
+                    
+                    print(f"Warning: Audio file has very low/no content (measured_I={input_i}), copying without normalization")
+                    # Fall back to simple copy without audio filter
+                    cmd_simple = [
+                        'ffmpeg', '-y', '-i', input_path,
+                        '-acodec', 'pcm_s16le',
+                        output_path
+                    ]
+                    subprocess.run(cmd_simple, capture_output=True, check=True)
+                    return True
+                    
+            except (ValueError, TypeError):
+                # If we can't parse the values, fall back to simple copy
+                print(f"Warning: Could not parse loudness measurements, skipping normalization")
+                cmd_simple = [
+                    'ffmpeg', '-y', '-i', input_path,
+                    '-acodec', 'pcm_s16le',
+                    output_path
+                ]
+                subprocess.run(cmd_simple, capture_output=True, check=True)
+                return True
+            
+            # Second pass: normalize with measured values (only if measurements are valid)
             loudnorm_filter = (
                 f"loudnorm=I={target_lufs}:TP=-1.5:LRA=11:"
-                f"measured_I={measurements.get('input_i', -24)}:"
-                f"measured_LRA={measurements.get('input_lra', 7)}:"
-                f"measured_TP={measurements.get('input_tp', -2)}:"
-                f"measured_thresh={measurements.get('input_thresh', -34)}:"
-                f"offset={measurements.get('target_offset', 0)}:linear=true"
+                f"measured_I={input_i}:"
+                f"measured_LRA={input_lra}:"
+                f"measured_TP={input_tp}:"
+                f"measured_thresh={input_thresh}:"
+                f"offset={target_offset}:linear=true"
             )
         else:
             # Fallback to single-pass
@@ -216,6 +261,13 @@ def normalize_lufs(input_path: str, output_path: str,
         return True
     except Exception as e:
         print(f"LUFS normalization error: {e}")
+        # Last resort: try simple copy without normalization
+        try:
+            shutil.copy2(input_path, output_path)
+            print(f"Warning: Copied file without normalization due to error")
+            return True
+        except Exception:
+            pass
         return False
 
 

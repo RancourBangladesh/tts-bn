@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বাংলা TTS রেকর্ডার</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d2ff;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .speaker-input {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speaker-input label {
+            font-weight: bold;
+        }
+
+        .speaker-input input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 5px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 1rem;
+            width: 100px;
+        }
+
+        .prompt-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .prompt-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .prompt-text {
+            font-size: 3rem;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0,210,255,0.1);
+            border-radius: 15px;
+            font-family: 'Noto Sans Bengali', sans-serif;
+        }
+
+        .prompt-type {
+            display: inline-block;
+            padding: 5px 15px;
+            background: rgba(58, 123, 213, 0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-record {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+        }
+
+        .btn-record:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 65, 108, 0.4);
+        }
+
+        .btn-record.recording {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-nav {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .btn-nav:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-accept {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+        }
+
+        .btn-retry {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .status-success {
+            background: rgba(56, 239, 125, 0.2);
+            border: 1px solid rgba(56, 239, 125, 0.5);
+        }
+
+        .status-error {
+            background: rgba(255, 75, 43, 0.2);
+            border: 1px solid rgba(255, 75, 43, 0.5);
+        }
+
+        .status-info {
+            background: rgba(0, 210, 255, 0.2);
+            border: 1px solid rgba(0, 210, 255, 0.5);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            transition: width 0.3s ease;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .recording-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #ff416c;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #666;
+            font-size: 0.85rem;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎤 বাংলা TTS রেকর্ডার</h1>
+            <p>Bengali Text-to-Speech Voice Recording System</p>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-value" id="stat-done">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-pending">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-duration">0:00</div>
+                <div class="stat-label">Total Duration</div>
+            </div>
+        </div>
+
+        <div class="speaker-input">
+            <label for="speaker">Speaker ID:</label>
+            <input type="text" id="speaker" value="S01" maxlength="10">
+        </div>
+
+        <div class="prompt-card">
+            <div class="prompt-info">
+                <span id="prompt-counter">Prompt 1 of 100</span>
+                <span class="prompt-type" id="prompt-type">vowel</span>
+            </div>
+            
+            <div class="prompt-text" id="prompt-text">Loading...</div>
+            
+            <div class="controls">
+                <button class="btn btn-record" id="btn-record">
+                    🎙️ Record
+                </button>
+                <button class="btn btn-stop hidden" id="btn-stop">
+                    ⏹️ Stop
+                </button>
+            </div>
+
+            <audio class="audio-player hidden" id="audio-player" controls></audio>
+
+            <div class="controls hidden" id="accept-controls">
+                <button class="btn btn-accept" id="btn-accept">
+                    ✓ Accept & Next
+                </button>
+                <button class="btn btn-retry" id="btn-retry">
+                    ↺ Re-record
+                </button>
+            </div>
+
+            <div id="status-message" class="status-message hidden"></div>
+        </div>
+
+        <div class="navigation">
+            <button class="btn btn-nav" id="btn-prev">← Previous</button>
+            <span id="nav-info">Use arrow keys to navigate</span>
+            <button class="btn btn-nav" id="btn-next">Next →</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+
+        <footer>
+            <p>Bengali TTS Custom Recording System</p>
+            <p>Press <kbd>Space</kbd> to record, <kbd>Enter</kbd> to accept</p>
+        </footer>
+    </div>
+
+    <script>
+        // State
+        let prompts = [];
+        let currentIndex = 0;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordedBlob = null;
+        let isRecording = false;
+
+        // DOM Elements
+        const elements = {
+            speaker: document.getElementById('speaker'),
+            promptText: document.getElementById('prompt-text'),
+            promptType: document.getElementById('prompt-type'),
+            promptCounter: document.getElementById('prompt-counter'),
+            btnRecord: document.getElementById('btn-record'),
+            btnStop: document.getElementById('btn-stop'),
+            btnPrev: document.getElementById('btn-prev'),
+            btnNext: document.getElementById('btn-next'),
+            btnAccept: document.getElementById('btn-accept'),
+            btnRetry: document.getElementById('btn-retry'),
+            audioPlayer: document.getElementById('audio-player'),
+            acceptControls: document.getElementById('accept-controls'),
+            statusMessage: document.getElementById('status-message'),
+            progressFill: document.getElementById('progress-fill'),
+            statDone: document.getElementById('stat-done'),
+            statPending: document.getElementById('stat-pending'),
+            statDuration: document.getElementById('stat-duration'),
+        };
+
+        // Initialize
+        async function init() {
+            await loadPrompts();
+            await loadStats();
+            await initMediaRecorder();
+            setupEventListeners();
+            updateUI();
+        }
+
+        // Load prompts from server
+        async function loadPrompts() {
+            try {
+                const response = await fetch('/api/prompts');
+                const data = await response.json();
+                if (data.ok) {
+                    prompts = data.prompts;
+                    // Find first pending prompt
+                    const pendingIndex = prompts.findIndex(p => p.status === 'pending');
+                    if (pendingIndex !== -1) {
+                        currentIndex = pendingIndex;
+                    }
+                }
+            } catch (error) {
+                showStatus('Error loading prompts: ' + error.message, 'error');
+            }
+        }
+
+        // Load stats from server
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                if (data.ok) {
+                    elements.statDone.textContent = data.stats.done;
+                    elements.statPending.textContent = data.stats.pending;
+                    const mins = Math.floor(data.stats.total_duration_minutes);
+                    const secs = Math.round((data.stats.total_duration_minutes - mins) * 60);
+                    elements.statDuration.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Initialize media recorder
+        async function initMediaRecorder() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        channelCount: 1,
+                        sampleRate: 16000,
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    }
+                });
+                
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'audio/webm;codecs=opus'
+                });
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    audioChunks = [];
+                    
+                    const audioUrl = URL.createObjectURL(recordedBlob);
+                    elements.audioPlayer.src = audioUrl;
+                    elements.audioPlayer.classList.remove('hidden');
+                    elements.acceptControls.classList.remove('hidden');
+                    
+                    showStatus('Recording complete. Listen and accept or re-record.', 'info');
+                };
+
+                showStatus('Microphone ready!', 'success');
+            } catch (error) {
+                showStatus('Microphone access denied: ' + error.message, 'error');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            elements.btnRecord.addEventListener('click', startRecording);
+            elements.btnStop.addEventListener('click', stopRecording);
+            elements.btnPrev.addEventListener('click', prevPrompt);
+            elements.btnNext.addEventListener('click', nextPrompt);
+            elements.btnAccept.addEventListener('click', acceptRecording);
+            elements.btnRetry.addEventListener('click', retryRecording);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                
+                switch (e.code) {
+                    case 'Space':
+                        e.preventDefault();
+                        if (isRecording) {
+                            stopRecording();
+                        } else {
+                            startRecording();
+                        }
+                        break;
+                    case 'Enter':
+                        if (recordedBlob) {
+                            acceptRecording();
+                        }
+                        break;
+                    case 'ArrowLeft':
+                        prevPrompt();
+                        break;
+                    case 'ArrowRight':
+                        nextPrompt();
+                        break;
+                    case 'KeyR':
+                        if (recordedBlob) {
+                            retryRecording();
+                        }
+                        break;
+                }
+            });
+        }
+
+        // Start recording
+        function startRecording() {
+            if (!mediaRecorder || isRecording) return;
+            
+            audioChunks = [];
+            recordedBlob = null;
+            elements.audioPlayer.classList.add('hidden');
+            elements.acceptControls.classList.add('hidden');
+            
+            mediaRecorder.start();
+            isRecording = true;
+            
+            elements.btnRecord.classList.add('hidden');
+            elements.btnStop.classList.remove('hidden');
+            elements.btnRecord.classList.add('recording');
+            
+            showStatus('<span class="recording-indicator"></span> Recording...', 'info', true);
+        }
+
+        // Stop recording
+        function stopRecording() {
+            if (!mediaRecorder || !isRecording) return;
+            
+            mediaRecorder.stop();
+            isRecording = false;
+            
+            elements.btnRecord.classList.remove('hidden');
+            elements.btnStop.classList.add('hidden');
+            elements.btnRecord.classList.remove('recording');
+        }
+
+        // Accept recording and upload
+        async function acceptRecording() {
+            if (!recordedBlob) return;
+            
+            const prompt = prompts[currentIndex];
+            const formData = new FormData();
+            formData.append('audio_data', recordedBlob, 'recording.webm');
+            formData.append('speaker', elements.speaker.value);
+            formData.append('prompt_id', prompt.prompt_id);
+            formData.append('text', prompt.text);
+            formData.append('type', prompt.type);
+
+            try {
+                showStatus('Uploading...', 'info');
+                const response = await fetch('/api/save', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (data.ok) {
+                    showStatus('✓ Saved successfully!', 'success');
+                    prompts[currentIndex].status = 'done';
+                    await loadStats();
+                    
+                    // Auto-advance after short delay
+                    setTimeout(() => {
+                        nextPrompt();
+                        resetRecording();
+                    }, 500);
+                } else {
+                    showStatus('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showStatus('Upload failed: ' + error.message, 'error');
+            }
+        }
+
+        // Retry recording
+        function retryRecording() {
+            resetRecording();
+            showStatus('Ready to record again.', 'info');
+        }
+
+        // Reset recording state
+        function resetRecording() {
+            recordedBlob = null;
+            elements.audioPlayer.classList.add('hidden');
+            elements.acceptControls.classList.add('hidden');
+            elements.audioPlayer.src = '';
+        }
+
+        // Navigate to previous prompt
+        function prevPrompt() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateUI();
+                resetRecording();
+            }
+        }
+
+        // Navigate to next prompt
+        function nextPrompt() {
+            if (currentIndex < prompts.length - 1) {
+                currentIndex++;
+                updateUI();
+                resetRecording();
+            }
+        }
+
+        // Update UI with current prompt
+        function updateUI() {
+            if (prompts.length === 0) {
+                elements.promptText.textContent = 'No prompts available';
+                return;
+            }
+
+            const prompt = prompts[currentIndex];
+            elements.promptText.textContent = prompt.text;
+            elements.promptType.textContent = prompt.type;
+            elements.promptCounter.textContent = `Prompt ${currentIndex + 1} of ${prompts.length}`;
+            
+            // Update progress bar
+            const doneCount = prompts.filter(p => p.status === 'done').length;
+            const progress = (doneCount / prompts.length) * 100;
+            elements.progressFill.style.width = `${progress}%`;
+            
+            // Update navigation buttons
+            elements.btnPrev.disabled = currentIndex === 0;
+            elements.btnNext.disabled = currentIndex === prompts.length - 1;
+            
+            // Clear status
+            hideStatus();
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info', isHtml = false) {
+            // Only allow HTML for trusted internal messages (recording indicator)
+            if (isHtml && message.includes('recording-indicator')) {
+                elements.statusMessage.innerHTML = message;
+            } else {
+                elements.statusMessage.textContent = message;
+            }
+            elements.statusMessage.className = `status-message status-${type}`;
+            elements.statusMessage.classList.remove('hidden');
+        }
+
+        // Hide status message
+        function hideStatus() {
+            elements.statusMessage.classList.add('hidden');
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>

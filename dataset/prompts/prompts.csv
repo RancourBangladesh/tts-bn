@@ -1,0 +1,734 @@
+prompt_id,type,text,status
+00001,vowel,অ,pending
+00002,vowel,আ,pending
+00003,vowel,ই,pending
+00004,vowel,ঈ,pending
+00005,vowel,উ,pending
+00006,vowel,ঊ,pending
+00007,vowel,ঋ,pending
+00008,vowel,এ,pending
+00009,vowel,ঐ,pending
+00010,vowel,ও,pending
+00011,vowel,ঔ,pending
+00012,consonant,ক,pending
+00013,consonant,খ,pending
+00014,consonant,গ,pending
+00015,consonant,ঘ,pending
+00016,consonant,ঙ,pending
+00017,consonant,চ,pending
+00018,consonant,ছ,pending
+00019,consonant,জ,pending
+00020,consonant,ঝ,pending
+00021,consonant,ঞ,pending
+00022,consonant,ট,pending
+00023,consonant,ঠ,pending
+00024,consonant,ড,pending
+00025,consonant,ঢ,pending
+00026,consonant,ণ,pending
+00027,consonant,ত,pending
+00028,consonant,থ,pending
+00029,consonant,দ,pending
+00030,consonant,ধ,pending
+00031,consonant,ন,pending
+00032,consonant,প,pending
+00033,consonant,ফ,pending
+00034,consonant,ব,pending
+00035,consonant,ভ,pending
+00036,consonant,ম,pending
+00037,consonant,য,pending
+00038,consonant,র,pending
+00039,consonant,ল,pending
+00040,consonant,শ,pending
+00041,consonant,ষ,pending
+00042,consonant,স,pending
+00043,consonant,হ,pending
+00044,consonant,ড়,pending
+00045,consonant,ঢ়,pending
+00046,consonant,য়,pending
+00047,consonant_matra,কা,pending
+00048,consonant_matra,কি,pending
+00049,consonant_matra,কী,pending
+00050,consonant_matra,কু,pending
+00051,consonant_matra,কূ,pending
+00052,consonant_matra,কৃ,pending
+00053,consonant_matra,কে,pending
+00054,consonant_matra,কৈ,pending
+00055,consonant_matra,কো,pending
+00056,consonant_matra,কৌ,pending
+00057,consonant_matra,খা,pending
+00058,consonant_matra,খি,pending
+00059,consonant_matra,খী,pending
+00060,consonant_matra,খু,pending
+00061,consonant_matra,খূ,pending
+00062,consonant_matra,খৃ,pending
+00063,consonant_matra,খে,pending
+00064,consonant_matra,খৈ,pending
+00065,consonant_matra,খো,pending
+00066,consonant_matra,খৌ,pending
+00067,consonant_matra,গা,pending
+00068,consonant_matra,গি,pending
+00069,consonant_matra,গী,pending
+00070,consonant_matra,গু,pending
+00071,consonant_matra,গূ,pending
+00072,consonant_matra,গৃ,pending
+00073,consonant_matra,গে,pending
+00074,consonant_matra,গৈ,pending
+00075,consonant_matra,গো,pending
+00076,consonant_matra,গৌ,pending
+00077,consonant_matra,ঘা,pending
+00078,consonant_matra,ঘি,pending
+00079,consonant_matra,ঘী,pending
+00080,consonant_matra,ঘু,pending
+00081,consonant_matra,ঘূ,pending
+00082,consonant_matra,ঘৃ,pending
+00083,consonant_matra,ঘে,pending
+00084,consonant_matra,ঘৈ,pending
+00085,consonant_matra,ঘো,pending
+00086,consonant_matra,ঘৌ,pending
+00087,consonant_matra,ঙা,pending
+00088,consonant_matra,ঙি,pending
+00089,consonant_matra,ঙী,pending
+00090,consonant_matra,ঙু,pending
+00091,consonant_matra,ঙূ,pending
+00092,consonant_matra,ঙৃ,pending
+00093,consonant_matra,ঙে,pending
+00094,consonant_matra,ঙৈ,pending
+00095,consonant_matra,ঙো,pending
+00096,consonant_matra,ঙৌ,pending
+00097,consonant_matra,চা,pending
+00098,consonant_matra,চি,pending
+00099,consonant_matra,চী,pending
+00100,consonant_matra,চু,pending
+00101,consonant_matra,চূ,pending
+00102,consonant_matra,চৃ,pending
+00103,consonant_matra,চে,pending
+00104,consonant_matra,চৈ,pending
+00105,consonant_matra,চো,pending
+00106,consonant_matra,চৌ,pending
+00107,consonant_matra,ছা,pending
+00108,consonant_matra,ছি,pending
+00109,consonant_matra,ছী,pending
+00110,consonant_matra,ছু,pending
+00111,consonant_matra,ছূ,pending
+00112,consonant_matra,ছৃ,pending
+00113,consonant_matra,ছে,pending
+00114,consonant_matra,ছৈ,pending
+00115,consonant_matra,ছো,pending
+00116,consonant_matra,ছৌ,pending
+00117,consonant_matra,জা,pending
+00118,consonant_matra,জি,pending
+00119,consonant_matra,জী,pending
+00120,consonant_matra,জু,pending
+00121,consonant_matra,জূ,pending
+00122,consonant_matra,জৃ,pending
+00123,consonant_matra,জে,pending
+00124,consonant_matra,জৈ,pending
+00125,consonant_matra,জো,pending
+00126,consonant_matra,জৌ,pending
+00127,consonant_matra,ঝা,pending
+00128,consonant_matra,ঝি,pending
+00129,consonant_matra,ঝী,pending
+00130,consonant_matra,ঝু,pending
+00131,consonant_matra,ঝূ,pending
+00132,consonant_matra,ঝৃ,pending
+00133,consonant_matra,ঝে,pending
+00134,consonant_matra,ঝৈ,pending
+00135,consonant_matra,ঝো,pending
+00136,consonant_matra,ঝৌ,pending
+00137,consonant_matra,ঞা,pending
+00138,consonant_matra,ঞি,pending
+00139,consonant_matra,ঞী,pending
+00140,consonant_matra,ঞু,pending
+00141,consonant_matra,ঞূ,pending
+00142,consonant_matra,ঞৃ,pending
+00143,consonant_matra,ঞে,pending
+00144,consonant_matra,ঞৈ,pending
+00145,consonant_matra,ঞো,pending
+00146,consonant_matra,ঞৌ,pending
+00147,consonant_matra,টা,pending
+00148,consonant_matra,টি,pending
+00149,consonant_matra,টী,pending
+00150,consonant_matra,টু,pending
+00151,consonant_matra,টূ,pending
+00152,consonant_matra,টৃ,pending
+00153,consonant_matra,টে,pending
+00154,consonant_matra,টৈ,pending
+00155,consonant_matra,টো,pending
+00156,consonant_matra,টৌ,pending
+00157,consonant_matra,ঠা,pending
+00158,consonant_matra,ঠি,pending
+00159,consonant_matra,ঠী,pending
+00160,consonant_matra,ঠু,pending
+00161,consonant_matra,ঠূ,pending
+00162,consonant_matra,ঠৃ,pending
+00163,consonant_matra,ঠে,pending
+00164,consonant_matra,ঠৈ,pending
+00165,consonant_matra,ঠো,pending
+00166,consonant_matra,ঠৌ,pending
+00167,consonant_matra,ডা,pending
+00168,consonant_matra,ডি,pending
+00169,consonant_matra,ডী,pending
+00170,consonant_matra,ডু,pending
+00171,consonant_matra,ডূ,pending
+00172,consonant_matra,ডৃ,pending
+00173,consonant_matra,ডে,pending
+00174,consonant_matra,ডৈ,pending
+00175,consonant_matra,ডো,pending
+00176,consonant_matra,ডৌ,pending
+00177,consonant_matra,ঢা,pending
+00178,consonant_matra,ঢি,pending
+00179,consonant_matra,ঢী,pending
+00180,consonant_matra,ঢু,pending
+00181,consonant_matra,ঢূ,pending
+00182,consonant_matra,ঢৃ,pending
+00183,consonant_matra,ঢে,pending
+00184,consonant_matra,ঢৈ,pending
+00185,consonant_matra,ঢো,pending
+00186,consonant_matra,ঢৌ,pending
+00187,consonant_matra,ণা,pending
+00188,consonant_matra,ণি,pending
+00189,consonant_matra,ণী,pending
+00190,consonant_matra,ণু,pending
+00191,consonant_matra,ণূ,pending
+00192,consonant_matra,ণৃ,pending
+00193,consonant_matra,ণে,pending
+00194,consonant_matra,ণৈ,pending
+00195,consonant_matra,ণো,pending
+00196,consonant_matra,ণৌ,pending
+00197,consonant_matra,তা,pending
+00198,consonant_matra,তি,pending
+00199,consonant_matra,তী,pending
+00200,consonant_matra,তু,pending
+00201,consonant_matra,তূ,pending
+00202,consonant_matra,তৃ,pending
+00203,consonant_matra,তে,pending
+00204,consonant_matra,তৈ,pending
+00205,consonant_matra,তো,pending
+00206,consonant_matra,তৌ,pending
+00207,consonant_matra,থা,pending
+00208,consonant_matra,থি,pending
+00209,consonant_matra,থী,pending
+00210,consonant_matra,থু,pending
+00211,consonant_matra,থূ,pending
+00212,consonant_matra,থৃ,pending
+00213,consonant_matra,থে,pending
+00214,consonant_matra,থৈ,pending
+00215,consonant_matra,থো,pending
+00216,consonant_matra,থৌ,pending
+00217,consonant_matra,দা,pending
+00218,consonant_matra,দি,pending
+00219,consonant_matra,দী,pending
+00220,consonant_matra,দু,pending
+00221,consonant_matra,দূ,pending
+00222,consonant_matra,দৃ,pending
+00223,consonant_matra,দে,pending
+00224,consonant_matra,দৈ,pending
+00225,consonant_matra,দো,pending
+00226,consonant_matra,দৌ,pending
+00227,consonant_matra,ধা,pending
+00228,consonant_matra,ধি,pending
+00229,consonant_matra,ধী,pending
+00230,consonant_matra,ধু,pending
+00231,consonant_matra,ধূ,pending
+00232,consonant_matra,ধৃ,pending
+00233,consonant_matra,ধে,pending
+00234,consonant_matra,ধৈ,pending
+00235,consonant_matra,ধো,pending
+00236,consonant_matra,ধৌ,pending
+00237,consonant_matra,না,pending
+00238,consonant_matra,নি,pending
+00239,consonant_matra,নী,pending
+00240,consonant_matra,নু,pending
+00241,consonant_matra,নূ,pending
+00242,consonant_matra,নৃ,pending
+00243,consonant_matra,নে,pending
+00244,consonant_matra,নৈ,pending
+00245,consonant_matra,নো,pending
+00246,consonant_matra,নৌ,pending
+00247,consonant_matra,পা,pending
+00248,consonant_matra,পি,pending
+00249,consonant_matra,পী,pending
+00250,consonant_matra,পু,pending
+00251,consonant_matra,পূ,pending
+00252,consonant_matra,পৃ,pending
+00253,consonant_matra,পে,pending
+00254,consonant_matra,পৈ,pending
+00255,consonant_matra,পো,pending
+00256,consonant_matra,পৌ,pending
+00257,consonant_matra,ফা,pending
+00258,consonant_matra,ফি,pending
+00259,consonant_matra,ফী,pending
+00260,consonant_matra,ফু,pending
+00261,consonant_matra,ফূ,pending
+00262,consonant_matra,ফৃ,pending
+00263,consonant_matra,ফে,pending
+00264,consonant_matra,ফৈ,pending
+00265,consonant_matra,ফো,pending
+00266,consonant_matra,ফৌ,pending
+00267,consonant_matra,বা,pending
+00268,consonant_matra,বি,pending
+00269,consonant_matra,বী,pending
+00270,consonant_matra,বু,pending
+00271,consonant_matra,বূ,pending
+00272,consonant_matra,বৃ,pending
+00273,consonant_matra,বে,pending
+00274,consonant_matra,বৈ,pending
+00275,consonant_matra,বো,pending
+00276,consonant_matra,বৌ,pending
+00277,consonant_matra,ভা,pending
+00278,consonant_matra,ভি,pending
+00279,consonant_matra,ভী,pending
+00280,consonant_matra,ভু,pending
+00281,consonant_matra,ভূ,pending
+00282,consonant_matra,ভৃ,pending
+00283,consonant_matra,ভে,pending
+00284,consonant_matra,ভৈ,pending
+00285,consonant_matra,ভো,pending
+00286,consonant_matra,ভৌ,pending
+00287,consonant_matra,মা,pending
+00288,consonant_matra,মি,pending
+00289,consonant_matra,মী,pending
+00290,consonant_matra,মু,pending
+00291,consonant_matra,মূ,pending
+00292,consonant_matra,মৃ,pending
+00293,consonant_matra,মে,pending
+00294,consonant_matra,মৈ,pending
+00295,consonant_matra,মো,pending
+00296,consonant_matra,মৌ,pending
+00297,consonant_matra,যা,pending
+00298,consonant_matra,যি,pending
+00299,consonant_matra,যী,pending
+00300,consonant_matra,যু,pending
+00301,consonant_matra,যূ,pending
+00302,consonant_matra,যৃ,pending
+00303,consonant_matra,যে,pending
+00304,consonant_matra,যৈ,pending
+00305,consonant_matra,যো,pending
+00306,consonant_matra,যৌ,pending
+00307,consonant_matra,রা,pending
+00308,consonant_matra,রি,pending
+00309,consonant_matra,রী,pending
+00310,consonant_matra,রু,pending
+00311,consonant_matra,রূ,pending
+00312,consonant_matra,রৃ,pending
+00313,consonant_matra,রে,pending
+00314,consonant_matra,রৈ,pending
+00315,consonant_matra,রো,pending
+00316,consonant_matra,রৌ,pending
+00317,consonant_matra,লা,pending
+00318,consonant_matra,লি,pending
+00319,consonant_matra,লী,pending
+00320,consonant_matra,লু,pending
+00321,consonant_matra,লূ,pending
+00322,consonant_matra,লৃ,pending
+00323,consonant_matra,লে,pending
+00324,consonant_matra,লৈ,pending
+00325,consonant_matra,লো,pending
+00326,consonant_matra,লৌ,pending
+00327,consonant_matra,শা,pending
+00328,consonant_matra,শি,pending
+00329,consonant_matra,শী,pending
+00330,consonant_matra,শু,pending
+00331,consonant_matra,শূ,pending
+00332,consonant_matra,শৃ,pending
+00333,consonant_matra,শে,pending
+00334,consonant_matra,শৈ,pending
+00335,consonant_matra,শো,pending
+00336,consonant_matra,শৌ,pending
+00337,consonant_matra,ষা,pending
+00338,consonant_matra,ষি,pending
+00339,consonant_matra,ষী,pending
+00340,consonant_matra,ষু,pending
+00341,consonant_matra,ষূ,pending
+00342,consonant_matra,ষৃ,pending
+00343,consonant_matra,ষে,pending
+00344,consonant_matra,ষৈ,pending
+00345,consonant_matra,ষো,pending
+00346,consonant_matra,ষৌ,pending
+00347,consonant_matra,সা,pending
+00348,consonant_matra,সি,pending
+00349,consonant_matra,সী,pending
+00350,consonant_matra,সু,pending
+00351,consonant_matra,সূ,pending
+00352,consonant_matra,সৃ,pending
+00353,consonant_matra,সে,pending
+00354,consonant_matra,সৈ,pending
+00355,consonant_matra,সো,pending
+00356,consonant_matra,সৌ,pending
+00357,consonant_matra,হা,pending
+00358,consonant_matra,হি,pending
+00359,consonant_matra,হী,pending
+00360,consonant_matra,হু,pending
+00361,consonant_matra,হূ,pending
+00362,consonant_matra,হৃ,pending
+00363,consonant_matra,হে,pending
+00364,consonant_matra,হৈ,pending
+00365,consonant_matra,হো,pending
+00366,consonant_matra,হৌ,pending
+00367,consonant_matra,ড়া,pending
+00368,consonant_matra,ড়ি,pending
+00369,consonant_matra,ড়ী,pending
+00370,consonant_matra,ড়ু,pending
+00371,consonant_matra,ড়ূ,pending
+00372,consonant_matra,ড়ৃ,pending
+00373,consonant_matra,ড়ে,pending
+00374,consonant_matra,ড়ৈ,pending
+00375,consonant_matra,ড়ো,pending
+00376,consonant_matra,ড়ৌ,pending
+00377,consonant_matra,ঢ়া,pending
+00378,consonant_matra,ঢ়ি,pending
+00379,consonant_matra,ঢ়ী,pending
+00380,consonant_matra,ঢ়ু,pending
+00381,consonant_matra,ঢ়ূ,pending
+00382,consonant_matra,ঢ়ৃ,pending
+00383,consonant_matra,ঢ়ে,pending
+00384,consonant_matra,ঢ়ৈ,pending
+00385,consonant_matra,ঢ়ো,pending
+00386,consonant_matra,ঢ়ৌ,pending
+00387,consonant_matra,য়া,pending
+00388,consonant_matra,য়ি,pending
+00389,consonant_matra,য়ী,pending
+00390,consonant_matra,য়ু,pending
+00391,consonant_matra,য়ূ,pending
+00392,consonant_matra,য়ৃ,pending
+00393,consonant_matra,য়ে,pending
+00394,consonant_matra,য়ৈ,pending
+00395,consonant_matra,য়ো,pending
+00396,consonant_matra,য়ৌ,pending
+00397,conjunct,ক্য,pending
+00398,conjunct,খ্য,pending
+00399,conjunct,গ্য,pending
+00400,conjunct,ঘ্য,pending
+00401,conjunct,চ্য,pending
+00402,conjunct,জ্য,pending
+00403,conjunct,ঝ্য,pending
+00404,conjunct,ট্য,pending
+00405,conjunct,ড্য,pending
+00406,conjunct,ণ্য,pending
+00407,conjunct,ত্য,pending
+00408,conjunct,থ্য,pending
+00409,conjunct,দ্য,pending
+00410,conjunct,ধ্য,pending
+00411,conjunct,ন্য,pending
+00412,conjunct,প্য,pending
+00413,conjunct,ব্য,pending
+00414,conjunct,ভ্য,pending
+00415,conjunct,ম্য,pending
+00416,conjunct,র্য,pending
+00417,conjunct,ল্য,pending
+00418,conjunct,শ্য,pending
+00419,conjunct,ষ্য,pending
+00420,conjunct,স্য,pending
+00421,conjunct,হ্য,pending
+00422,conjunct,ক্র,pending
+00423,conjunct,খ্র,pending
+00424,conjunct,গ্র,pending
+00425,conjunct,ঘ্র,pending
+00426,conjunct,চ্র,pending
+00427,conjunct,জ্র,pending
+00428,conjunct,ট্র,pending
+00429,conjunct,ড্র,pending
+00430,conjunct,ত্র,pending
+00431,conjunct,থ্র,pending
+00432,conjunct,দ্র,pending
+00433,conjunct,ধ্র,pending
+00434,conjunct,ন্র,pending
+00435,conjunct,প্র,pending
+00436,conjunct,ফ্র,pending
+00437,conjunct,ব্র,pending
+00438,conjunct,ভ্র,pending
+00439,conjunct,ম্র,pending
+00440,conjunct,শ্র,pending
+00441,conjunct,স্র,pending
+00442,conjunct,হ্র,pending
+00443,conjunct,ক্ক,pending
+00444,conjunct,গ্গ,pending
+00445,conjunct,চ্চ,pending
+00446,conjunct,জ্জ,pending
+00447,conjunct,ট্ট,pending
+00448,conjunct,ড্ড,pending
+00449,conjunct,ত্ত,pending
+00450,conjunct,দ্দ,pending
+00451,conjunct,ন্ন,pending
+00452,conjunct,প্প,pending
+00453,conjunct,ব্ব,pending
+00454,conjunct,ম্ম,pending
+00455,conjunct,ল্ল,pending
+00456,conjunct,স্স,pending
+00457,conjunct,ক্ত,pending
+00458,conjunct,ক্ন,pending
+00459,conjunct,ক্ম,pending
+00460,conjunct,ক্ষ,pending
+00461,conjunct,ক্স,pending
+00462,conjunct,গ্ন,pending
+00463,conjunct,গ্ম,pending
+00464,conjunct,ঘ্ন,pending
+00465,conjunct,ঙ্ক,pending
+00466,conjunct,ঙ্খ,pending
+00467,conjunct,ঙ্গ,pending
+00468,conjunct,ঙ্ঘ,pending
+00469,conjunct,চ্ছ,pending
+00470,conjunct,জ্ঞ,pending
+00471,conjunct,ঞ্চ,pending
+00472,conjunct,ঞ্ছ,pending
+00473,conjunct,ঞ্জ,pending
+00474,conjunct,ঞ্ঝ,pending
+00475,conjunct,ট্ঠ,pending
+00476,conjunct,ড্ঢ,pending
+00477,conjunct,ণ্ট,pending
+00478,conjunct,ণ্ঠ,pending
+00479,conjunct,ণ্ড,pending
+00480,conjunct,ণ্ঢ,pending
+00481,conjunct,ণ্ণ,pending
+00482,conjunct,ত্থ,pending
+00483,conjunct,ত্ন,pending
+00484,conjunct,ত্ম,pending
+00485,conjunct,দ্ধ,pending
+00486,conjunct,দ্ব,pending
+00487,conjunct,দ্ম,pending
+00488,conjunct,দ্ভ,pending
+00489,conjunct,ন্ত,pending
+00490,conjunct,ন্থ,pending
+00491,conjunct,ন্দ,pending
+00492,conjunct,ন্ধ,pending
+00493,conjunct,ন্ম,pending
+00494,conjunct,ন্ব,pending
+00495,conjunct,প্ত,pending
+00496,conjunct,প্ন,pending
+00497,conjunct,প্ম,pending
+00498,conjunct,প্স,pending
+00499,conjunct,ব্দ,pending
+00500,conjunct,ব্ধ,pending
+00501,conjunct,ব্ন,pending
+00502,conjunct,ভ্ন,pending
+00503,conjunct,ম্ন,pending
+00504,conjunct,ম্প,pending
+00505,conjunct,ম্ফ,pending
+00506,conjunct,ম্ব,pending
+00507,conjunct,ম্ভ,pending
+00508,conjunct,ল্ক,pending
+00509,conjunct,ল্গ,pending
+00510,conjunct,ল্ট,pending
+00511,conjunct,ল্ড,pending
+00512,conjunct,ল্প,pending
+00513,conjunct,ল্ফ,pending
+00514,conjunct,ল্ব,pending
+00515,conjunct,ল্ম,pending
+00516,conjunct,শ্চ,pending
+00517,conjunct,শ্ছ,pending
+00518,conjunct,শ্ন,pending
+00519,conjunct,শ্ব,pending
+00520,conjunct,শ্ম,pending
+00521,conjunct,ষ্ক,pending
+00522,conjunct,ষ্ট,pending
+00523,conjunct,ষ্ঠ,pending
+00524,conjunct,ষ্ণ,pending
+00525,conjunct,ষ্প,pending
+00526,conjunct,ষ্ফ,pending
+00527,conjunct,ষ্ম,pending
+00528,conjunct,স্ক,pending
+00529,conjunct,স্খ,pending
+00530,conjunct,স্ট,pending
+00531,conjunct,স্ত,pending
+00532,conjunct,স্থ,pending
+00533,conjunct,স্ন,pending
+00534,conjunct,স্প,pending
+00535,conjunct,স্ফ,pending
+00536,conjunct,স্ব,pending
+00537,conjunct,স্ম,pending
+00538,conjunct,হ্ন,pending
+00539,conjunct,হ্ম,pending
+00540,conjunct,হ্য,pending
+00541,conjunct,হ্র,pending
+00542,conjunct,হ্ল,pending
+00543,conjunct,ক্ত্র,pending
+00544,conjunct,ক্ষ্ণ,pending
+00545,conjunct,ক্ষ্ম,pending
+00546,conjunct,ঙ্ক্ষ,pending
+00547,conjunct,ন্ত্র,pending
+00548,conjunct,ন্ত্য,pending
+00549,conjunct,ন্দ্র,pending
+00550,conjunct,ন্দ্য,pending
+00551,conjunct,ন্ধ্র,pending
+00552,conjunct,ন্ধ্য,pending
+00553,conjunct,ম্প্র,pending
+00554,conjunct,ম্ব্র,pending
+00555,conjunct,ষ্ট্র,pending
+00556,conjunct,ষ্ঠ্য,pending
+00557,conjunct,স্ত্র,pending
+00558,conjunct,স্ত্য,pending
+00559,conjunct,স্থ্য,pending
+00560,conjunct,স্প্র,pending
+00561,word,আমি,pending
+00562,word,তুমি,pending
+00563,word,সে,pending
+00564,word,আমরা,pending
+00565,word,তোমরা,pending
+00566,word,তারা,pending
+00567,word,এটা,pending
+00568,word,ওটা,pending
+00569,word,সেটা,pending
+00570,word,কি,pending
+00571,word,কে,pending
+00572,word,কেন,pending
+00573,word,কোথায়,pending
+00574,word,কখন,pending
+00575,word,কীভাবে,pending
+00576,word,হ্যাঁ,pending
+00577,word,না,pending
+00578,word,ঠিক,pending
+00579,word,ভুল,pending
+00580,word,ভালো,pending
+00581,word,খারাপ,pending
+00582,word,বড়,pending
+00583,word,ছোট,pending
+00584,word,নতুন,pending
+00585,word,পুরনো,pending
+00586,word,সুন্দর,pending
+00587,word,জল,pending
+00588,word,পানি,pending
+00589,word,খাবার,pending
+00590,word,ভাত,pending
+00591,word,রুটি,pending
+00592,word,মাছ,pending
+00593,word,মাংস,pending
+00594,word,বাড়ি,pending
+00595,word,ঘর,pending
+00596,word,দরজা,pending
+00597,word,জানালা,pending
+00598,word,ছাদ,pending
+00599,word,মাটি,pending
+00600,word,গাছ,pending
+00601,word,ফুল,pending
+00602,word,পাতা,pending
+00603,word,ফল,pending
+00604,word,বীজ,pending
+00605,word,মা,pending
+00606,word,বাবা,pending
+00607,word,ভাই,pending
+00608,word,বোন,pending
+00609,word,দাদা,pending
+00610,word,দিদি,pending
+00611,word,বন্ধু,pending
+00612,word,শিক্ষক,pending
+00613,word,ছাত্র,pending
+00614,word,ডাক্তার,pending
+00615,word,দিন,pending
+00616,word,রাত,pending
+00617,word,সকাল,pending
+00618,word,বিকাল,pending
+00619,word,সন্ধ্যা,pending
+00620,word,আজ,pending
+00621,word,কাল,pending
+00622,word,পরশু,pending
+00623,word,গতকাল,pending
+00624,word,এক,pending
+00625,word,দুই,pending
+00626,word,তিন,pending
+00627,word,চার,pending
+00628,word,পাঁচ,pending
+00629,word,ছয়,pending
+00630,word,সাত,pending
+00631,word,আট,pending
+00632,word,নয়,pending
+00633,word,দশ,pending
+00634,word,লাল,pending
+00635,word,নীল,pending
+00636,word,সবুজ,pending
+00637,word,হলুদ,pending
+00638,word,সাদা,pending
+00639,word,কালো,pending
+00640,word,যাওয়া,pending
+00641,word,আসা,pending
+00642,word,খাওয়া,pending
+00643,word,পড়া,pending
+00644,word,লেখা,pending
+00645,word,দেখা,pending
+00646,word,শোনা,pending
+00647,word,বলা,pending
+00648,word,করা,pending
+00649,word,হওয়া,pending
+00650,word,থাকা,pending
+00651,word,দেওয়া,pending
+00652,word,নেওয়া,pending
+00653,word,পাওয়া,pending
+00654,sentence,আমার নাম বাংলা।,pending
+00655,sentence,বাংলাদেশ আমার দেশ।,pending
+00656,sentence,আজ আবহাওয়া ভালো।,pending
+00657,sentence,তুমি কেমন আছো?,pending
+00658,sentence,আমি ভালো আছি।,pending
+00659,sentence,ধন্যবাদ তোমাকে।,pending
+00660,sentence,আবার দেখা হবে।,pending
+00661,sentence,শুভ সকাল।,pending
+00662,sentence,শুভ রাত্রি।,pending
+00663,sentence,খুব ভালো লাগছে।,pending
+00664,sentence,একটু দাঁড়াও।,pending
+00665,sentence,আমি আসছি।,pending
+00666,sentence,তুমি কোথায় যাচ্ছ?,pending
+00667,sentence,এটা কী?,pending
+00668,sentence,ওটা কার?,pending
+00669,sentence,আমি জানি না।,pending
+00670,sentence,তুমি জানো?,pending
+00671,sentence,"হ্যাঁ, আমি জানি।",pending
+00672,sentence,"না, আমি জানি না।",pending
+00673,sentence,দয়া করে বলুন।,pending
+00674,carrier,এটি আমি।,pending
+00675,carrier,আমি আমি বলছি।,pending
+00676,carrier,এখানে আমি আছে।,pending
+00677,carrier,এটি তুমি।,pending
+00678,carrier,আমি তুমি বলছি।,pending
+00679,carrier,এখানে তুমি আছে।,pending
+00680,carrier,এটি সে।,pending
+00681,carrier,আমি সে বলছি।,pending
+00682,carrier,এখানে সে আছে।,pending
+00683,carrier,এটি আমরা।,pending
+00684,carrier,আমি আমরা বলছি।,pending
+00685,carrier,এখানে আমরা আছে।,pending
+00686,carrier,এটি তোমরা।,pending
+00687,carrier,আমি তোমরা বলছি।,pending
+00688,carrier,এখানে তোমরা আছে।,pending
+00689,carrier,এটি তারা।,pending
+00690,carrier,আমি তারা বলছি।,pending
+00691,carrier,এখানে তারা আছে।,pending
+00692,carrier,এটি এটা।,pending
+00693,carrier,আমি এটা বলছি।,pending
+00694,carrier,এখানে এটা আছে।,pending
+00695,carrier,এটি ওটা।,pending
+00696,carrier,আমি ওটা বলছি।,pending
+00697,carrier,এখানে ওটা আছে।,pending
+00698,carrier,এটি সেটা।,pending
+00699,carrier,আমি সেটা বলছি।,pending
+00700,carrier,এখানে সেটা আছে।,pending
+00701,carrier,এটি কি।,pending
+00702,carrier,আমি কি বলছি।,pending
+00703,carrier,এখানে কি আছে।,pending
+00704,carrier,এটি কে।,pending
+00705,carrier,আমি কে বলছি।,pending
+00706,carrier,এখানে কে আছে।,pending
+00707,carrier,এটি কেন।,pending
+00708,carrier,আমি কেন বলছি।,pending
+00709,carrier,এখানে কেন আছে।,pending
+00710,carrier,এটি কোথায়।,pending
+00711,carrier,আমি কোথায় বলছি।,pending
+00712,carrier,এখানে কোথায় আছে।,pending
+00713,carrier,এটি কখন।,pending
+00714,carrier,আমি কখন বলছি।,pending
+00715,carrier,এখানে কখন আছে।,pending
+00716,carrier,এটি কীভাবে।,pending
+00717,carrier,আমি কীভাবে বলছি।,pending
+00718,carrier,এখানে কীভাবে আছে।,pending
+00719,carrier,এটি হ্যাঁ।,pending
+00720,carrier,আমি হ্যাঁ বলছি।,pending
+00721,carrier,এখানে হ্যাঁ আছে।,pending
+00722,carrier,এটি না।,pending
+00723,carrier,আমি না বলছি।,pending
+00724,carrier,এখানে না আছে।,pending
+00725,carrier,এটি ঠিক।,pending
+00726,carrier,আমি ঠিক বলছি।,pending
+00727,carrier,এখানে ঠিক আছে।,pending
+00728,carrier,এটি ভুল।,pending
+00729,carrier,আমি ভুল বলছি।,pending
+00730,carrier,এখানে ভুল আছে।,pending
+00731,carrier,এটি ভালো।,pending
+00732,carrier,আমি ভালো বলছি।,pending
+00733,carrier,এখানে ভালো আছে।,pending

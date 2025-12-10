@@ -1,0 +1,8 @@
+/* Bengali TTS Recorder Styles */
+/* Additional styles - most are inline in recorder.html */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap');
+
+.bengali-text {
+    font-family: 'Noto Sans Bengali', sans-serif;
+}

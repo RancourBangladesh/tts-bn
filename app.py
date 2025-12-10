@@ -71,7 +71,7 @@ def is_safe_path(base_dir, path):
 
 
 def convert_to_wav(input_path, output_path):
-    """Convert audio file to WAV format (16kHz, mono, 16-bit)."""
+    """Convert audio file to WAV format (48kHz, mono, 16-bit for recording quality)."""
     # Validate paths to prevent command injection
     if not is_safe_path(DATASET_DIR, input_path) or not is_safe_path(DATASET_DIR, output_path):
         print(f"Security error: Invalid path")
@@ -80,7 +80,7 @@ def convert_to_wav(input_path, output_path):
     try:
         subprocess.run([
             'ffmpeg', '-y', '-i', input_path,
-            '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le',
+            '-ar', '48000', '-ac', '1', '-c:a', 'pcm_s16le',
             output_path
         ], capture_output=True, check=True)
         return True
@@ -182,7 +182,7 @@ def save_audio():
         'type': prompt_type,
         'filename': filename,
         'duration': duration,
-        'sample_rate': 16000 if audio_path.endswith('.wav') else None,
+        'sample_rate': 48000 if audio_path.endswith('.wav') else None,
         'bits': 16 if audio_path.endswith('.wav') else None,
         'accepted': True,
         'timestamp': datetime.utcnow().isoformat()
@@ -242,6 +242,144 @@ def serve_recording(filename):
     return send_from_directory(RECORDINGS_DIR, filename)
 
 
+@app.route('/api/quality-check', methods=['POST'])
+def check_audio_quality():
+    """
+    Check audio quality for real-time validation.
+    Returns issues like silence-only, clipping, low volume, background noise.
+    """
+    audio_file = request.files.get('audio_data')
+    if not audio_file:
+        return jsonify({'ok': False, 'error': 'No audio data received'})
+    
+    # Save temporarily
+    temp_path = os.path.join(RECORDINGS_DIR, 'temp_quality_check.webm')
+    wav_path = os.path.join(RECORDINGS_DIR, 'temp_quality_check.wav')
+    
+    try:
+        audio_file.save(temp_path)
+        
+        # Convert to WAV for analysis
+        if not convert_to_wav(temp_path, wav_path):
+            return jsonify({'ok': False, 'error': 'Conversion failed'})
+        
+        # Analyze audio
+        issues = []
+        quality_score = 100
+        
+        # Check duration
+        duration = get_audio_duration(wav_path)
+        if duration is None:
+            issues.append('Could not read audio file')
+            quality_score -= 50
+        elif duration < 0.3:
+            issues.append('Recording too short (< 0.3s)')
+            quality_score -= 30
+        elif duration > 30:
+            issues.append('Recording too long (> 30s)')
+            quality_score -= 10
+        
+        # Check for silence-only (using basic analysis)
+        if duration and duration > 0:
+            try:
+                with wave.open(wav_path, 'rb') as w:
+                    frames = w.readframes(w.getnframes())
+                    # Simple RMS calculation
+                    import struct
+                    samples = struct.unpack(f'{len(frames)//2}h', frames)
+                    rms = (sum(s**2 for s in samples) / len(samples)) ** 0.5 if samples else 0
+                    rms_normalized = rms / 32767.0
+                    
+                    # Check if mostly silence
+                    if rms_normalized < 0.01:
+                        issues.append('Recording appears to be silence only')
+                        quality_score -= 40
+                    elif rms_normalized < 0.03:
+                        issues.append('Volume is very low')
+                        quality_score -= 20
+                    
+                    # Check for clipping
+                    max_sample = max(abs(s) for s in samples) if samples else 0
+                    if max_sample >= 32700:
+                        issues.append('Audio is clipping (too loud)')
+                        quality_score -= 25
+            except Exception as e:
+                print(f"Audio analysis error: {e}")
+        
+        # Clean up temp files
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
+        
+        return jsonify({
+            'ok': True,
+            'passed': len(issues) == 0,
+            'issues': issues,
+            'quality_score': max(0, quality_score),
+            'duration': duration
+        })
+        
+    except Exception as e:
+        # Clean up on error
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
+        return jsonify({'ok': False, 'error': str(e)})
+
+
+@app.route('/api/prompts/navigate', methods=['POST'])
+def navigate_prompts():
+    """
+    Navigate to a specific prompt or find next/previous pending prompt.
+    """
+    data = request.get_json()
+    action = data.get('action', 'next')  # 'next', 'prev', 'goto', 'next_pending'
+    current_index = data.get('current_index', 0)
+    target_index = data.get('target_index', 0)
+    
+    prompts = load_prompts()
+    if not prompts:
+        return jsonify({'ok': False, 'error': 'No prompts loaded'})
+    
+    if action == 'next':
+        new_index = min(current_index + 1, len(prompts) - 1)
+    elif action == 'prev':
+        new_index = max(current_index - 1, 0)
+    elif action == 'goto':
+        new_index = max(0, min(target_index, len(prompts) - 1))
+    elif action == 'next_pending':
+        # Find next pending prompt
+        new_index = current_index
+        for i in range(current_index + 1, len(prompts)):
+            if prompts[i].get('status') == 'pending':
+                new_index = i
+                break
+        else:
+            # Wrap around to beginning
+            for i in range(0, current_index):
+                if prompts[i].get('status') == 'pending':
+                    new_index = i
+                    break
+    else:
+        new_index = current_index
+    
+    # Get context (previous and next prompts for preview)
+    context = {
+        'previous': prompts[new_index - 1] if new_index > 0 else None,
+        'current': prompts[new_index],
+        'next': prompts[new_index + 1] if new_index < len(prompts) - 1 else None,
+    }
+    
+    return jsonify({
+        'ok': True,
+        'index': new_index,
+        'total': len(prompts),
+        'context': context
+    })
+
+
 if __name__ == '__main__':
     print("\n" + "=" * 60)
     print("Bengali TTS Recording Server")
@@ -249,6 +387,7 @@ if __name__ == '__main__':
     print(f"\nDataset directory: {DATASET_DIR}")
     print(f"Recordings directory: {RECORDINGS_DIR}")
     print(f"Prompts file: {PROMPTS_FILE}")
+    print(f"Audio format: 48kHz, mono, 16-bit PCM")
     
     # Check if prompts exist
     prompts = load_prompts()

@@ -21,7 +21,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -69,6 +69,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .speaker-input label {
@@ -117,6 +118,79 @@
             border-radius: 20px;
             font-size: 0.85rem;
             margin-bottom: 10px;
+        }
+
+        /* History preview for previous/next prompts */
+        .history-preview {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .history-item {
+            max-width: 45%;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-item.prev { text-align: left; }
+        .history-item.next { text-align: right; }
+
+        /* Waveform preview */
+        .waveform-container {
+            width: 100%;
+            height: 80px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .waveform-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .waveform-label {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Quality indicator */
+        .quality-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .quality-good {
+            background: rgba(56, 239, 125, 0.15);
+            color: #38ef7d;
+        }
+
+        .quality-warning {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+        }
+
+        .quality-bad {
+            background: rgba(255, 75, 43, 0.15);
+            color: #ff4b2b;
         }
 
         .controls {
@@ -182,6 +256,11 @@
             color: white;
         }
 
+        .btn-skip {
+            background: rgba(255, 193, 7, 0.3);
+            color: #ffc107;
+        }
+
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -214,11 +293,33 @@
             border: 1px solid rgba(0, 210, 255, 0.5);
         }
 
+        .status-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+        }
+
         .navigation {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-top: 20px;
+            gap: 10px;
+        }
+
+        .nav-center {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .goto-input {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            text-align: center;
         }
 
         .progress-bar {
@@ -253,6 +354,22 @@
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
+        }
+
+        /* Level meter */
+        .level-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .level-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #38ef7d, #ffc107, #ff4b2b);
+            transition: width 0.1s ease;
         }
 
         footer {
@@ -291,6 +408,9 @@
         <div class="speaker-input">
             <label for="speaker">Speaker ID:</label>
             <input type="text" id="speaker" value="S01" maxlength="10">
+            <span style="margin-left: auto; color: #666; font-size: 0.85rem;">
+                Format: 48kHz, mono, 16-bit PCM
+            </span>
         </div>
 
         <div class="prompt-card">
@@ -299,7 +419,24 @@
                 <span class="prompt-type" id="prompt-type">vowel</span>
             </div>
             
+            <!-- History preview -->
+            <div class="history-preview">
+                <div class="history-item prev" id="history-prev">← Previous prompt</div>
+                <div class="history-item next" id="history-next">Next prompt →</div>
+            </div>
+            
             <div class="prompt-text" id="prompt-text">Loading...</div>
+            
+            <!-- Waveform visualization -->
+            <div class="waveform-container" id="waveform-container">
+                <canvas class="waveform-canvas" id="waveform-canvas"></canvas>
+                <span class="waveform-label" id="waveform-label">No recording</span>
+            </div>
+            
+            <!-- Audio level meter -->
+            <div class="level-meter" id="level-meter">
+                <div class="level-fill" id="level-fill" style="width: 0%"></div>
+            </div>
             
             <div class="controls">
                 <button class="btn btn-record" id="btn-record">
@@ -311,6 +448,12 @@
             </div>
 
             <audio class="audio-player hidden" id="audio-player" controls></audio>
+            
+            <!-- Quality indicator -->
+            <div class="quality-indicator hidden" id="quality-indicator">
+                <span id="quality-icon">✓</span>
+                <span id="quality-text">Quality check passed</span>
+            </div>
 
             <div class="controls hidden" id="accept-controls">
                 <button class="btn btn-accept" id="btn-accept">
@@ -319,6 +462,9 @@
                 <button class="btn btn-retry" id="btn-retry">
                     ↺ Re-record
                 </button>
+                <button class="btn btn-skip" id="btn-skip">
+                    ⏭ Skip
+                </button>
             </div>
 
             <div id="status-message" class="status-message hidden"></div>
@@ -326,7 +472,11 @@
 
         <div class="navigation">
             <button class="btn btn-nav" id="btn-prev">← Previous</button>
-            <span id="nav-info">Use arrow keys to navigate</span>
+            <div class="nav-center">
+                <span>Go to:</span>
+                <input type="number" class="goto-input" id="goto-input" min="1" value="1">
+                <button class="btn btn-nav" id="btn-goto" style="padding: 8px 15px;">Go</button>
+            </div>
             <button class="btn btn-nav" id="btn-next">Next →</button>
         </div>
 
@@ -335,8 +485,8 @@
         </div>
 
         <footer>
-            <p>Bengali TTS Custom Recording System</p>
-            <p>Press <kbd>Space</kbd> to record, <kbd>Enter</kbd> to accept</p>
+            <p>Bengali TTS Custom Recording System | 48kHz Audio</p>
+            <p>Press <kbd>Space</kbd> to record, <kbd>Enter</kbd> to accept, <kbd>S</kbd> to skip</p>
         </footer>
     </div>
 
@@ -348,6 +498,10 @@
         let audioChunks = [];
         let recordedBlob = null;
         let isRecording = false;
+        let audioContext = null;
+        let analyser = null;
+        let microphone = null;
+        let animationId = null;
 
         // DOM Elements
         const elements = {
@@ -361,6 +515,9 @@
             btnNext: document.getElementById('btn-next'),
             btnAccept: document.getElementById('btn-accept'),
             btnRetry: document.getElementById('btn-retry'),
+            btnSkip: document.getElementById('btn-skip'),
+            btnGoto: document.getElementById('btn-goto'),
+            gotoInput: document.getElementById('goto-input'),
             audioPlayer: document.getElementById('audio-player'),
             acceptControls: document.getElementById('accept-controls'),
             statusMessage: document.getElementById('status-message'),
@@ -368,6 +525,14 @@
             statDone: document.getElementById('stat-done'),
             statPending: document.getElementById('stat-pending'),
             statDuration: document.getElementById('stat-duration'),
+            historyPrev: document.getElementById('history-prev'),
+            historyNext: document.getElementById('history-next'),
+            waveformCanvas: document.getElementById('waveform-canvas'),
+            waveformLabel: document.getElementById('waveform-label'),
+            levelFill: document.getElementById('level-fill'),
+            qualityIndicator: document.getElementById('quality-indicator'),
+            qualityIcon: document.getElementById('quality-icon'),
+            qualityText: document.getElementById('quality-text'),
         };
 
         // Initialize
@@ -420,11 +585,19 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     audio: {
                         channelCount: 1,
-                        sampleRate: 16000,
+                        sampleRate: 48000,  // High quality 48kHz
                         echoCancellation: true,
-                        noiseSuppression: true
+                        noiseSuppression: true,
+                        autoGainControl: true
                     }
                 });
+                
+                // Setup audio context for visualization
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048;
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
                 
                 mediaRecorder = new MediaRecorder(stream, {
                     mimeType: 'audio/webm;codecs=opus'
@@ -436,21 +609,138 @@
                     }
                 };
 
-                mediaRecorder.onstop = () => {
+                mediaRecorder.onstop = async () => {
                     recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     audioChunks = [];
+                    
+                    stopLevelMeter();
                     
                     const audioUrl = URL.createObjectURL(recordedBlob);
                     elements.audioPlayer.src = audioUrl;
                     elements.audioPlayer.classList.remove('hidden');
                     elements.acceptControls.classList.remove('hidden');
                     
+                    // Draw waveform
+                    drawWaveform(recordedBlob);
+                    
+                    // Run quality check
+                    await checkQuality(recordedBlob);
+                    
                     showStatus('Recording complete. Listen and accept or re-record.', 'info');
                 };
 
-                showStatus('Microphone ready!', 'success');
+                showStatus('Microphone ready! (48kHz)', 'success');
             } catch (error) {
                 showStatus('Microphone access denied: ' + error.message, 'error');
+            }
+        }
+        
+        // Level meter animation
+        function startLevelMeter() {
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            
+            function updateLevel() {
+                analyser.getByteFrequencyData(dataArray);
+                const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+                const level = Math.min(100, (average / 128) * 100);
+                elements.levelFill.style.width = level + '%';
+                
+                if (isRecording) {
+                    animationId = requestAnimationFrame(updateLevel);
+                }
+            }
+            
+            updateLevel();
+        }
+        
+        function stopLevelMeter() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            elements.levelFill.style.width = '0%';
+        }
+        
+        // Draw waveform from blob
+        async function drawWaveform(blob) {
+            try {
+                const arrayBuffer = await blob.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                const data = audioBuffer.getChannelData(0);
+                
+                const canvas = elements.waveformCanvas;
+                const ctx = canvas.getContext('2d');
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(0, 0, width, height);
+                
+                ctx.strokeStyle = '#00d2ff';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                
+                const step = Math.ceil(data.length / width);
+                const amp = height / 2;
+                
+                for (let i = 0; i < width; i++) {
+                    let min = 1.0;
+                    let max = -1.0;
+                    
+                    for (let j = 0; j < step; j++) {
+                        const datum = data[(i * step) + j];
+                        if (datum < min) min = datum;
+                        if (datum > max) max = datum;
+                    }
+                    
+                    ctx.moveTo(i, (1 + min) * amp);
+                    ctx.lineTo(i, (1 + max) * amp);
+                }
+                
+                ctx.stroke();
+                
+                const duration = audioBuffer.duration.toFixed(1);
+                elements.waveformLabel.textContent = `Duration: ${duration}s`;
+                
+            } catch (error) {
+                console.error('Waveform error:', error);
+                elements.waveformLabel.textContent = 'Waveform error';
+            }
+        }
+        
+        // Quality check
+        async function checkQuality(blob) {
+            try {
+                const formData = new FormData();
+                formData.append('audio_data', blob, 'check.webm');
+                
+                const response = await fetch('/api/quality-check', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                elements.qualityIndicator.classList.remove('hidden');
+                
+                if (data.ok && data.passed) {
+                    elements.qualityIndicator.className = 'quality-indicator quality-good';
+                    elements.qualityIcon.textContent = '✓';
+                    elements.qualityText.textContent = `Quality check passed (${data.duration?.toFixed(1)}s)`;
+                } else if (data.ok && data.issues.length > 0) {
+                    const isWarning = data.quality_score > 50;
+                    elements.qualityIndicator.className = `quality-indicator ${isWarning ? 'quality-warning' : 'quality-bad'}`;
+                    elements.qualityIcon.textContent = isWarning ? '⚠' : '✗';
+                    elements.qualityText.textContent = data.issues.join(', ');
+                } else {
+                    elements.qualityIndicator.classList.add('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Quality check error:', error);
             }
         }
 
@@ -462,6 +752,12 @@
             elements.btnNext.addEventListener('click', nextPrompt);
             elements.btnAccept.addEventListener('click', acceptRecording);
             elements.btnRetry.addEventListener('click', retryRecording);
+            elements.btnSkip.addEventListener('click', skipPrompt);
+            elements.btnGoto.addEventListener('click', gotoPrompt);
+            
+            elements.gotoInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') gotoPrompt();
+            });
 
             // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
@@ -492,6 +788,11 @@
                             retryRecording();
                         }
                         break;
+                    case 'KeyS':
+                        if (!isRecording) {
+                            skipPrompt();
+                        }
+                        break;
                 }
             });
         }
@@ -504,9 +805,19 @@
             recordedBlob = null;
             elements.audioPlayer.classList.add('hidden');
             elements.acceptControls.classList.add('hidden');
+            elements.qualityIndicator.classList.add('hidden');
+            
+            // Clear waveform
+            const canvas = elements.waveformCanvas;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            elements.waveformLabel.textContent = 'Recording...';
             
             mediaRecorder.start();
             isRecording = true;
+            
+            startLevelMeter();
             
             elements.btnRecord.classList.add('hidden');
             elements.btnStop.classList.remove('hidden');
@@ -521,6 +832,8 @@
             
             mediaRecorder.stop();
             isRecording = false;
+            
+            stopLevelMeter();
             
             elements.btnRecord.classList.remove('hidden');
             elements.btnStop.classList.add('hidden');
@@ -570,13 +883,41 @@
             resetRecording();
             showStatus('Ready to record again.', 'info');
         }
+        
+        // Skip prompt
+        function skipPrompt() {
+            prompts[currentIndex].status = 'retry';
+            nextPrompt();
+            resetRecording();
+            showStatus('Skipped prompt.', 'warning');
+        }
+        
+        // Go to specific prompt
+        function gotoPrompt() {
+            const target = parseInt(elements.gotoInput.value) - 1;
+            if (target >= 0 && target < prompts.length) {
+                currentIndex = target;
+                updateUI();
+                resetRecording();
+            }
+        }
 
         // Reset recording state
         function resetRecording() {
             recordedBlob = null;
             elements.audioPlayer.classList.add('hidden');
             elements.acceptControls.classList.add('hidden');
+            elements.qualityIndicator.classList.add('hidden');
             elements.audioPlayer.src = '';
+            elements.waveformLabel.textContent = 'No recording';
+            
+            // Clear waveform
+            const canvas = elements.waveformCanvas;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
         }
 
         // Navigate to previous prompt
@@ -608,6 +949,22 @@
             elements.promptText.textContent = prompt.text;
             elements.promptType.textContent = prompt.type;
             elements.promptCounter.textContent = `Prompt ${currentIndex + 1} of ${prompts.length}`;
+            elements.gotoInput.value = currentIndex + 1;
+            
+            // Update history preview
+            if (currentIndex > 0) {
+                elements.historyPrev.textContent = '← ' + prompts[currentIndex - 1].text;
+                elements.historyPrev.style.display = 'block';
+            } else {
+                elements.historyPrev.style.display = 'none';
+            }
+            
+            if (currentIndex < prompts.length - 1) {
+                elements.historyNext.textContent = prompts[currentIndex + 1].text + ' →';
+                elements.historyNext.style.display = 'block';
+            } else {
+                elements.historyNext.style.display = 'none';
+            }
             
             // Update progress bar
             const doneCount = prompts.filter(p => p.status === 'done').length;

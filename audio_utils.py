@@ -3,22 +3,26 @@
 Audio Processing Utilities for Bengali TTS
 
 Functions for:
-- Audio format conversion
-- Silence trimming
-- Loudness normalization
-- Quality checks (clipping, SNR, duration)
-- Batch processing
+- Audio format conversion (48kHz for recording, 22050Hz for training)
+- Silence trimming with configurable thresholds
+- Loudness normalization to -14 LUFS
+- Quality checks (clipping, SNR, duration, noise detection)
+- Batch processing with filtering
+- Optional augmentation (speed perturbation, volume scaling)
 """
 
 import os
 import argparse
 import subprocess
 import json
+import unicodedata
 from pathlib import Path
-from typing import Optional, Tuple, List, Dict
+from typing import Optional, Tuple, List, Dict, Set
 import wave
 import struct
 import math
+import hashlib
+import re
 
 # Try to import optional libraries
 try:
@@ -32,6 +36,34 @@ try:
     HAS_SOUNDFILE = True
 except ImportError:
     HAS_SOUNDFILE = False
+
+
+# ============================================================================
+# CONFIGURATION CONSTANTS
+# ============================================================================
+
+# Audio format settings
+RECORDING_SAMPLE_RATE = 48000  # High quality for recording
+TRAINING_SAMPLE_RATE = 22050   # Standard for TTS training
+DEFAULT_CHANNELS = 1           # Mono
+DEFAULT_BIT_DEPTH = 16         # 16-bit PCM
+
+# Loudness normalization
+TARGET_LUFS = -14.0  # EBU R128 recommendation for speech
+
+# Quality thresholds
+MIN_DURATION = 0.5     # seconds
+MAX_DURATION = 15.0    # seconds
+CLIPPING_THRESHOLD = 0.99
+MIN_RMS_DB = -35.0     # Minimum acceptable RMS
+MAX_RMS_DB = -10.0     # Maximum acceptable RMS (avoid clipping)
+MIN_SNR_DB = 20.0      # Minimum signal-to-noise ratio
+
+# Silence detection
+SILENCE_THRESHOLD_DB = -40.0
+MIN_SILENCE_DURATION = 0.1  # seconds
+TARGET_LEADING_SILENCE = 0.1  # Target silence at start
+TARGET_TRAILING_SILENCE = 0.1  # Target silence at end
 
 
 def get_audio_info(filepath: str) -> Optional[Dict]:
@@ -70,16 +102,141 @@ def validate_path(filepath: str) -> bool:
     return True
 
 
+def get_lufs(filepath: str) -> Optional[float]:
+    """
+    Get integrated loudness (LUFS) of audio file using ffmpeg.
+    
+    Args:
+        filepath: Path to audio file
+    
+    Returns:
+        Integrated loudness in LUFS, or None on error
+    """
+    try:
+        cmd = [
+            'ffmpeg', '-i', filepath,
+            '-af', 'loudnorm=print_format=json',
+            '-f', 'null', '-'
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        # Parse loudnorm output from stderr
+        output = result.stderr
+        # Find the JSON part
+        json_start = output.rfind('{')
+        json_end = output.rfind('}') + 1
+        if json_start != -1 and json_end > json_start:
+            json_str = output[json_start:json_end]
+            data = json.loads(json_str)
+            return float(data.get('input_i', -24.0))
+    except Exception as e:
+        print(f"LUFS measurement error: {e}")
+    return None
+
+
+def normalize_lufs(input_path: str, output_path: str, 
+                   target_lufs: float = TARGET_LUFS) -> bool:
+    """
+    Normalize audio to target LUFS using ffmpeg loudnorm filter.
+    
+    Args:
+        input_path: Path to input file
+        output_path: Path to output file
+        target_lufs: Target loudness in LUFS (default: -14)
+    
+    Returns:
+        True if successful
+    """
+    try:
+        # Two-pass loudnorm for accurate normalization
+        # First pass: measure
+        cmd_measure = [
+            'ffmpeg', '-i', input_path,
+            '-af', 'loudnorm=print_format=json',
+            '-f', 'null', '-'
+        ]
+        result = subprocess.run(cmd_measure, capture_output=True, text=True)
+        
+        # Parse measurements
+        output = result.stderr
+        json_start = output.rfind('{')
+        json_end = output.rfind('}') + 1
+        
+        if json_start != -1 and json_end > json_start:
+            measurements = json.loads(output[json_start:json_end])
+            
+            # Second pass: normalize with measured values
+            loudnorm_filter = (
+                f"loudnorm=I={target_lufs}:TP=-1.5:LRA=11:"
+                f"measured_I={measurements.get('input_i', -24)}:"
+                f"measured_LRA={measurements.get('input_lra', 7)}:"
+                f"measured_TP={measurements.get('input_tp', -2)}:"
+                f"measured_thresh={measurements.get('input_thresh', -34)}:"
+                f"offset={measurements.get('target_offset', 0)}:linear=true"
+            )
+        else:
+            # Fallback to single-pass
+            loudnorm_filter = f'loudnorm=I={target_lufs}:TP=-1.5:LRA=11'
+        
+        cmd = [
+            'ffmpeg', '-y', '-i', input_path,
+            '-af', loudnorm_filter,
+            output_path
+        ]
+        subprocess.run(cmd, capture_output=True, check=True)
+        return True
+    except Exception as e:
+        print(f"LUFS normalization error: {e}")
+        return False
+
+
+def detect_silence_regions(filepath: str, threshold_db: float = SILENCE_THRESHOLD_DB,
+                          min_duration: float = MIN_SILENCE_DURATION) -> List[Tuple[float, float]]:
+    """
+    Detect silence regions in audio file.
+    
+    Args:
+        filepath: Path to audio file
+        threshold_db: Silence threshold in dB
+        min_duration: Minimum silence duration to detect
+    
+    Returns:
+        List of (start_time, end_time) tuples for silence regions
+    """
+    silence_regions = []
+    
+    try:
+        cmd = [
+            'ffmpeg', '-i', filepath,
+            '-af', f'silencedetect=n={threshold_db}dB:d={min_duration}',
+            '-f', 'null', '-'
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        # Parse silencedetect output
+        import re
+        starts = re.findall(r'silence_start: ([\d.]+)', result.stderr)
+        ends = re.findall(r'silence_end: ([\d.]+)', result.stderr)
+        
+        for start, end in zip(starts, ends):
+            silence_regions.append((float(start), float(end)))
+            
+    except Exception as e:
+        print(f"Silence detection error: {e}")
+    
+    return silence_regions
+
+
 def convert_to_wav(input_path: str, output_path: str, 
-                   sample_rate: int = 16000, channels: int = 1, 
-                   bits: int = 16) -> bool:
+                   sample_rate: int = TRAINING_SAMPLE_RATE, channels: int = DEFAULT_CHANNELS, 
+                   bits: int = DEFAULT_BIT_DEPTH) -> bool:
     """
     Convert audio file to WAV format using ffmpeg.
     
     Args:
         input_path: Path to input audio file
         output_path: Path to output WAV file
-        sample_rate: Target sample rate (default: 16000)
+        sample_rate: Target sample rate (default: 22050 for training)
         channels: Number of channels (default: 1 for mono)
         bits: Bit depth (default: 16)
     
@@ -109,22 +266,46 @@ def convert_to_wav(input_path: str, output_path: str,
         return False
 
 
+def convert_for_recording(input_path: str, output_path: str) -> bool:
+    """Convert audio to high-quality format for recording (48kHz, mono, 16-bit)."""
+    return convert_to_wav(input_path, output_path, 
+                         sample_rate=RECORDING_SAMPLE_RATE,
+                         channels=DEFAULT_CHANNELS,
+                         bits=DEFAULT_BIT_DEPTH)
+
+
+def convert_for_training(input_path: str, output_path: str) -> bool:
+    """Convert audio to training format (22050Hz, mono, 16-bit)."""
+    return convert_to_wav(input_path, output_path,
+                         sample_rate=TRAINING_SAMPLE_RATE,
+                         channels=DEFAULT_CHANNELS,
+                         bits=DEFAULT_BIT_DEPTH)
+
+
 def trim_silence(input_path: str, output_path: str,
-                 threshold_db: float = -40, 
-                 min_silence_duration: float = 0.1) -> bool:
+                 threshold_db: float = SILENCE_THRESHOLD_DB, 
+                 min_silence_duration: float = MIN_SILENCE_DURATION,
+                 target_leading: float = TARGET_LEADING_SILENCE,
+                 target_trailing: float = TARGET_TRAILING_SILENCE) -> bool:
     """
     Trim leading and trailing silence from audio file using ffmpeg.
+    Maintains consistent silence padding at start and end.
     
     Args:
         input_path: Path to input audio file
         output_path: Path to output file
         threshold_db: Silence threshold in dB (default: -40)
         min_silence_duration: Minimum silence duration in seconds
+        target_leading: Target silence at beginning (seconds)
+        target_trailing: Target silence at end (seconds)
     
     Returns:
         True if successful
     """
     try:
+        # First, trim all silence
+        temp_path = output_path + '.temp.wav'
+        
         # Use ffmpeg silenceremove filter
         cmd = [
             'ffmpeg', '-y', '-i', input_path,
@@ -132,39 +313,51 @@ def trim_silence(input_path: str, output_path: str,
                    f'start_threshold={threshold_db}dB:'
                    f'stop_periods=1:stop_duration={min_silence_duration}:'
                    f'stop_threshold={threshold_db}dB',
-            output_path
+            temp_path
         ]
         subprocess.run(cmd, capture_output=True, check=True)
+        
+        # Add back consistent padding
+        # Get sample rate from temp file
+        info = get_audio_info(temp_path)
+        if info:
+            sample_rate = info['sample_rate']
+            # Add padding using adelay and apad filters
+            cmd_pad = [
+                'ffmpeg', '-y', '-i', temp_path,
+                '-af', f'adelay={int(target_leading*1000)}|{int(target_leading*1000)},'
+                       f'apad=pad_dur={target_trailing}',
+                output_path
+            ]
+            subprocess.run(cmd_pad, capture_output=True, check=True)
+            os.remove(temp_path)
+        else:
+            os.rename(temp_path, output_path)
+        
         return True
     except Exception as e:
         print(f"Trim error: {e}")
+        # Clean up temp file if exists
+        if os.path.exists(input_path + '.temp.wav'):
+            os.remove(input_path + '.temp.wav')
         return False
 
 
 def normalize_loudness(input_path: str, output_path: str,
-                       target_lufs: float = -23.0) -> bool:
+                       target_lufs: float = TARGET_LUFS) -> bool:
     """
     Normalize audio loudness using ffmpeg loudnorm filter.
+    Uses two-pass normalization for accurate results.
     
     Args:
         input_path: Path to input file
         output_path: Path to output file
-        target_lufs: Target loudness in LUFS (default: -23)
+        target_lufs: Target loudness in LUFS (default: -14)
     
     Returns:
         True if successful
     """
-    try:
-        cmd = [
-            'ffmpeg', '-y', '-i', input_path,
-            '-af', f'loudnorm=I={target_lufs}:TP=-1.5:LRA=11',
-            output_path
-        ]
-        subprocess.run(cmd, capture_output=True, check=True)
-        return True
-    except Exception as e:
-        print(f"Normalization error: {e}")
-        return False
+    return normalize_lufs(input_path, output_path, target_lufs)
 
 
 def check_clipping(filepath: str, threshold: float = 0.99) -> Tuple[bool, float]:
@@ -233,14 +426,15 @@ def calculate_rms(filepath: str) -> Optional[float]:
         return None
 
 
-def check_duration(filepath: str, min_dur: float = 0.2, max_dur: float = 10.0) -> Tuple[bool, float]:
+def check_duration(filepath: str, min_dur: float = MIN_DURATION, 
+                   max_dur: float = MAX_DURATION) -> Tuple[bool, float]:
     """
     Check if audio duration is within acceptable range.
     
     Args:
         filepath: Path to WAV file
-        min_dur: Minimum duration in seconds
-        max_dur: Maximum duration in seconds
+        min_dur: Minimum duration in seconds (default: 0.5)
+        max_dur: Maximum duration in seconds (default: 15.0)
     
     Returns:
         Tuple of (is_valid, duration)
@@ -254,12 +448,110 @@ def check_duration(filepath: str, min_dur: float = 0.2, max_dur: float = 10.0) -
     return (is_valid, duration)
 
 
-def quality_check(filepath: str) -> Dict:
+def estimate_snr(filepath: str) -> Optional[float]:
     """
-    Run all quality checks on an audio file.
+    Estimate Signal-to-Noise Ratio of audio file.
+    Uses silence detection to estimate noise floor.
     
     Args:
         filepath: Path to WAV file
+    
+    Returns:
+        Estimated SNR in dB, or None on error
+    """
+    if not HAS_NUMPY:
+        return None
+    
+    try:
+        with wave.open(filepath, 'rb') as w:
+            frames = w.readframes(w.getnframes())
+            sample_rate = w.getframerate()
+            
+            if w.getsampwidth() == 2:
+                samples = np.frombuffer(frames, dtype=np.int16).astype(float)
+                samples /= 32767.0
+            else:
+                samples = np.frombuffer(frames, dtype=np.uint8).astype(float)
+                samples = (samples - 128) / 128.0
+            
+            # Calculate RMS in windows
+            window_size = int(0.025 * sample_rate)  # 25ms windows
+            hop_size = int(0.010 * sample_rate)  # 10ms hop
+            
+            rms_values = []
+            for i in range(0, len(samples) - window_size, hop_size):
+                window = samples[i:i + window_size]
+                rms = np.sqrt(np.mean(window ** 2))
+                if rms > 0:
+                    rms_values.append(20 * math.log10(rms))
+            
+            if not rms_values:
+                return None
+            
+            # Estimate noise floor as 10th percentile
+            noise_floor = np.percentile(rms_values, 10)
+            # Estimate signal as 90th percentile
+            signal_level = np.percentile(rms_values, 90)
+            
+            snr = signal_level - noise_floor
+            return float(snr)
+            
+    except Exception as e:
+        print(f"SNR estimation error: {e}")
+        return None
+
+
+def check_silence_only(filepath: str, threshold_ratio: float = 0.95) -> bool:
+    """
+    Check if audio is mostly silence (recording failed).
+    
+    Args:
+        filepath: Path to WAV file
+        threshold_ratio: Ratio of silence to total duration to consider as silence-only
+    
+    Returns:
+        True if file is mostly silence
+    """
+    silence_regions = detect_silence_regions(filepath)
+    info = get_audio_info(filepath)
+    
+    if not info or info['duration'] == 0:
+        return True
+    
+    total_silence = sum(end - start for start, end in silence_regions)
+    silence_ratio = total_silence / info['duration']
+    
+    return silence_ratio >= threshold_ratio
+
+
+def check_background_noise(filepath: str, max_noise_db: float = -50.0) -> Tuple[bool, Optional[float]]:
+    """
+    Check for excessive background noise/hiss.
+    
+    Args:
+        filepath: Path to WAV file
+        max_noise_db: Maximum acceptable noise floor in dB
+    
+    Returns:
+        Tuple of (has_excessive_noise, estimated_noise_floor)
+    """
+    snr = estimate_snr(filepath)
+    if snr is None:
+        return (False, None)
+    
+    # If SNR is too low, there's excessive noise
+    has_excessive_noise = snr < MIN_SNR_DB
+    
+    return (has_excessive_noise, snr)
+
+
+def quality_check(filepath: str, strict: bool = False) -> Dict:
+    """
+    Run comprehensive quality checks on an audio file.
+    
+    Args:
+        filepath: Path to WAV file
+        strict: If True, apply stricter thresholds
     
     Returns:
         Dictionary with check results
@@ -267,10 +559,12 @@ def quality_check(filepath: str) -> Dict:
     results = {
         'filepath': filepath,
         'exists': os.path.exists(filepath),
-        'checks': {}
+        'checks': {},
+        'issues': []
     }
     
     if not results['exists']:
+        results['issues'].append('File does not exist')
         return results
     
     # Get info
@@ -278,35 +572,342 @@ def quality_check(filepath: str) -> Dict:
     results['info'] = info
     
     # Duration check
-    dur_valid, duration = check_duration(filepath)
+    min_dur = MIN_DURATION if not strict else 0.8
+    max_dur = MAX_DURATION if not strict else 10.0
+    dur_valid, duration = check_duration(filepath, min_dur, max_dur)
     results['checks']['duration'] = {
         'valid': dur_valid,
         'value': duration,
-        'unit': 'seconds'
+        'unit': 'seconds',
+        'threshold': f'{min_dur}-{max_dur}s'
     }
+    if not dur_valid:
+        if duration < min_dur:
+            results['issues'].append(f'Too short ({duration:.2f}s < {min_dur}s)')
+        else:
+            results['issues'].append(f'Too long ({duration:.2f}s > {max_dur}s)')
     
     # Clipping check
-    has_clipping, peak = check_clipping(filepath)
+    has_clipping, peak = check_clipping(filepath, CLIPPING_THRESHOLD)
     results['checks']['clipping'] = {
         'valid': not has_clipping,
         'value': peak,
-        'unit': 'peak_ratio'
+        'unit': 'peak_ratio',
+        'threshold': CLIPPING_THRESHOLD
     }
+    if has_clipping:
+        results['issues'].append(f'Audio is clipping (peak={peak:.3f})')
     
     # RMS check
     rms = calculate_rms(filepath)
+    rms_valid = rms is not None and MIN_RMS_DB <= rms <= MAX_RMS_DB
     results['checks']['rms'] = {
-        'valid': rms is not None and -35 <= rms <= -10,
+        'valid': rms_valid,
         'value': rms,
-        'unit': 'dB'
+        'unit': 'dB',
+        'threshold': f'{MIN_RMS_DB} to {MAX_RMS_DB} dB'
     }
+    if not rms_valid and rms is not None:
+        if rms < MIN_RMS_DB:
+            results['issues'].append(f'Volume too low (RMS={rms:.1f}dB)')
+        else:
+            results['issues'].append(f'Volume too high (RMS={rms:.1f}dB)')
     
-    # Overall
+    # SNR check
+    snr = estimate_snr(filepath)
+    snr_valid = snr is not None and snr >= MIN_SNR_DB
+    results['checks']['snr'] = {
+        'valid': snr_valid,
+        'value': snr,
+        'unit': 'dB',
+        'threshold': f'>= {MIN_SNR_DB} dB'
+    }
+    if not snr_valid and snr is not None:
+        results['issues'].append(f'Too much background noise (SNR={snr:.1f}dB)')
+    
+    # Silence-only check
+    is_silence_only = check_silence_only(filepath)
+    results['checks']['silence_only'] = {
+        'valid': not is_silence_only,
+        'value': is_silence_only
+    }
+    if is_silence_only:
+        results['issues'].append('Recording is mostly silence')
+    
+    # Overall result
     results['passed'] = all(
-        c['valid'] for c in results['checks'].values() if 'valid' in c
+        c.get('valid', True) for c in results['checks'].values()
     )
     
     return results
+
+
+def filter_low_quality(input_dir: str, output_dir: str = None,
+                       strict: bool = False) -> Tuple[List[str], List[str]]:
+    """
+    Filter out low quality audio files.
+    
+    Args:
+        input_dir: Directory with audio files
+        output_dir: Optional directory to copy good files to
+        strict: Apply stricter quality thresholds
+    
+    Returns:
+        Tuple of (good_files, bad_files)
+    """
+    good_files = []
+    bad_files = []
+    
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+    
+    extensions = {'.wav', '.mp3', '.webm', '.ogg', '.m4a', '.flac'}
+    
+    for filename in os.listdir(input_dir):
+        ext = Path(filename).suffix.lower()
+        if ext not in extensions:
+            continue
+        
+        filepath = os.path.join(input_dir, filename)
+        result = quality_check(filepath, strict=strict)
+        
+        if result['passed']:
+            good_files.append(filepath)
+            if output_dir:
+                import shutil
+                shutil.copy2(filepath, os.path.join(output_dir, filename))
+        else:
+            bad_files.append({
+                'file': filepath,
+                'issues': result['issues']
+            })
+    
+    return good_files, bad_files
+
+
+# ============================================================================
+# DATA AUGMENTATION
+# ============================================================================
+
+def speed_perturbation(input_path: str, output_path: str, factor: float) -> bool:
+    """
+    Apply speed perturbation to audio.
+    
+    Args:
+        input_path: Path to input file
+        output_path: Path to output file
+        factor: Speed factor (0.95 = slower, 1.05 = faster)
+    
+    Returns:
+        True if successful
+    """
+    try:
+        # Use ffmpeg atempo filter
+        # atempo only accepts 0.5 to 2.0, chain for more extreme values
+        cmd = [
+            'ffmpeg', '-y', '-i', input_path,
+            '-af', f'atempo={factor}',
+            output_path
+        ]
+        subprocess.run(cmd, capture_output=True, check=True)
+        return True
+    except Exception as e:
+        print(f"Speed perturbation error: {e}")
+        return False
+
+
+def volume_perturbation(input_path: str, output_path: str, 
+                        factor: float) -> bool:
+    """
+    Apply volume scaling to audio.
+    
+    Args:
+        input_path: Path to input file
+        output_path: Path to output file
+        factor: Volume factor (0.9 = quieter, 1.1 = louder)
+    
+    Returns:
+        True if successful
+    """
+    try:
+        cmd = [
+            'ffmpeg', '-y', '-i', input_path,
+            '-af', f'volume={factor}',
+            output_path
+        ]
+        subprocess.run(cmd, capture_output=True, check=True)
+        return True
+    except Exception as e:
+        print(f"Volume perturbation error: {e}")
+        return False
+
+
+def generate_augmented_dataset(input_dir: str, output_dir: str,
+                               speed_factors: List[float] = None,
+                               volume_factors: List[float] = None) -> Dict:
+    """
+    Generate augmented versions of audio files.
+    
+    Args:
+        input_dir: Directory with original audio files
+        output_dir: Directory to save augmented files
+        speed_factors: List of speed factors to apply (e.g., [0.95, 1.05])
+        volume_factors: List of volume factors to apply (e.g., [0.9, 1.1])
+    
+    Returns:
+        Dictionary with augmentation statistics
+    """
+    if speed_factors is None:
+        speed_factors = [0.95, 1.05]
+    if volume_factors is None:
+        volume_factors = [0.9, 1.1]
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    stats = {
+        'original_files': 0,
+        'speed_augmented': 0,
+        'volume_augmented': 0,
+        'total_output': 0
+    }
+    
+    extensions = {'.wav'}
+    
+    for filename in os.listdir(input_dir):
+        ext = Path(filename).suffix.lower()
+        if ext not in extensions:
+            continue
+        
+        input_path = os.path.join(input_dir, filename)
+        base_name = Path(filename).stem
+        stats['original_files'] += 1
+        
+        # Copy original
+        import shutil
+        shutil.copy2(input_path, os.path.join(output_dir, filename))
+        stats['total_output'] += 1
+        
+        # Speed augmentation
+        for factor in speed_factors:
+            if factor == 1.0:
+                continue
+            out_name = f"{base_name}_speed{factor:.2f}.wav"
+            out_path = os.path.join(output_dir, out_name)
+            if speed_perturbation(input_path, out_path, factor):
+                stats['speed_augmented'] += 1
+                stats['total_output'] += 1
+        
+        # Volume augmentation
+        for factor in volume_factors:
+            if factor == 1.0:
+                continue
+            out_name = f"{base_name}_vol{factor:.2f}.wav"
+            out_path = os.path.join(output_dir, out_name)
+            if volume_perturbation(input_path, out_path, factor):
+                stats['volume_augmented'] += 1
+                stats['total_output'] += 1
+    
+    return stats
+
+
+# ============================================================================
+# METADATA UTILITIES
+# ============================================================================
+
+def compute_file_hash(filepath: str) -> str:
+    """Compute MD5 hash of file for duplicate detection."""
+    hasher = hashlib.md5()
+    with open(filepath, 'rb') as f:
+        for chunk in iter(lambda: f.read(8192), b''):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def find_duplicates(directory: str) -> Dict[str, List[str]]:
+    """
+    Find duplicate audio files by content hash.
+    
+    Args:
+        directory: Directory to scan
+    
+    Returns:
+        Dictionary mapping hash to list of duplicate file paths
+    """
+    hash_to_files: Dict[str, List[str]] = {}
+    
+    extensions = {'.wav', '.mp3', '.webm', '.ogg', '.m4a', '.flac'}
+    
+    for filename in os.listdir(directory):
+        ext = Path(filename).suffix.lower()
+        if ext not in extensions:
+            continue
+        
+        filepath = os.path.join(directory, filename)
+        file_hash = compute_file_hash(filepath)
+        
+        if file_hash not in hash_to_files:
+            hash_to_files[file_hash] = []
+        hash_to_files[file_hash].append(filepath)
+    
+    # Return only duplicates
+    return {h: files for h, files in hash_to_files.items() if len(files) > 1}
+
+
+def normalize_text_utf8(text: str) -> str:
+    """
+    Normalize text to NFC Unicode form.
+    
+    Args:
+        text: Input text
+    
+    Returns:
+        NFC-normalized text
+    """
+    return unicodedata.normalize('NFC', text)
+
+
+def validate_metadata_entry(entry: Dict, wav_dir: str) -> Dict:
+    """
+    Validate a metadata entry.
+    
+    Args:
+        entry: Metadata dictionary with filename, text, etc.
+        wav_dir: Directory containing WAV files
+    
+    Returns:
+        Dictionary with validation results
+    """
+    result = {
+        'valid': True,
+        'issues': []
+    }
+    
+    # Check filename exists
+    filename = entry.get('filename', '')
+    if filename:
+        filepath = os.path.join(wav_dir, filename)
+        if not os.path.exists(filepath):
+            result['valid'] = False
+            result['issues'].append(f'Audio file not found: {filename}')
+        else:
+            # Get actual duration
+            info = get_audio_info(filepath)
+            if info:
+                entry['actual_duration'] = info['duration']
+    
+    # Check text
+    text = entry.get('text', '')
+    if not text:
+        result['valid'] = False
+        result['issues'].append('Empty text')
+    else:
+        # Normalize and check
+        normalized = normalize_text_utf8(text)
+        if normalized != text:
+            result['issues'].append('Text needs UTF-8 normalization')
+            entry['normalized_text'] = normalized
+    
+    return result
 
 
 def process_directory(input_dir: str, output_dir: str,
@@ -387,21 +988,92 @@ def process_directory(input_dir: str, output_dir: str,
 
 def main():
     parser = argparse.ArgumentParser(description='Audio processing utilities for Bengali TTS')
+    
+    # Main operations
     parser.add_argument('--process', action='store_true', help='Process recordings directory')
+    parser.add_argument('--filter', action='store_true', help='Filter out low quality files')
+    parser.add_argument('--augment', action='store_true', help='Generate augmented dataset')
+    parser.add_argument('--check', type=str, help='Run quality check on single file')
+    parser.add_argument('--find-duplicates', action='store_true', help='Find duplicate audio files')
+    
+    # Directories
     parser.add_argument('--input', type=str, default='dataset/recordings', help='Input directory')
-    parser.add_argument('--output', type=str, default='dataset/processed/wav_16k_mono', help='Output directory')
-    parser.add_argument('--sample-rate', type=int, default=16000, help='Target sample rate')
+    parser.add_argument('--output', type=str, default='dataset/processed/wav_22k_mono', help='Output directory')
+    
+    # Processing options
+    parser.add_argument('--sample-rate', type=int, default=TRAINING_SAMPLE_RATE, help='Target sample rate')
+    parser.add_argument('--target-lufs', type=float, default=TARGET_LUFS, help='Target loudness in LUFS')
     parser.add_argument('--no-trim', action='store_true', help='Skip silence trimming')
     parser.add_argument('--no-normalize', action='store_true', help='Skip loudness normalization')
-    parser.add_argument('--check', type=str, help='Run quality check on single file')
+    parser.add_argument('--strict', action='store_true', help='Apply strict quality thresholds')
     
     args = parser.parse_args()
     
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    
     if args.check:
-        result = quality_check(args.check)
+        result = quality_check(args.check, strict=args.strict)
         print(json.dumps(result, indent=2))
+        
+    elif args.find_duplicates:
+        input_dir = os.path.join(base_dir, args.input)
+        print(f"\nScanning for duplicates in: {input_dir}")
+        duplicates = find_duplicates(input_dir)
+        
+        if duplicates:
+            print(f"\nFound {len(duplicates)} sets of duplicates:")
+            for file_hash, files in duplicates.items():
+                print(f"\n  Hash: {file_hash[:8]}...")
+                for f in files:
+                    print(f"    - {Path(f).name}")
+        else:
+            print("No duplicates found.")
+            
+    elif args.filter:
+        input_dir = os.path.join(base_dir, args.input)
+        output_dir = os.path.join(base_dir, args.output, 'filtered')
+        
+        print(f"\nFiltering low quality files...")
+        print(f"Input: {input_dir}")
+        print(f"Output: {output_dir}")
+        print(f"Strict mode: {args.strict}")
+        print()
+        
+        good_files, bad_files = filter_low_quality(input_dir, output_dir, strict=args.strict)
+        
+        print(f"\nResults:")
+        print(f"  Passed: {len(good_files)}")
+        print(f"  Failed: {len(bad_files)}")
+        
+        if bad_files:
+            print(f"\nRejected files:")
+            for item in bad_files[:10]:  # Show first 10
+                print(f"  {Path(item['file']).name}: {', '.join(item['issues'])}")
+            if len(bad_files) > 10:
+                print(f"  ... and {len(bad_files) - 10} more")
+                
+    elif args.augment:
+        input_dir = os.path.join(base_dir, args.input)
+        output_dir = os.path.join(base_dir, args.output, 'augmented')
+        
+        print(f"\nGenerating augmented dataset...")
+        print(f"Input: {input_dir}")
+        print(f"Output: {output_dir}")
+        print()
+        
+        stats = generate_augmented_dataset(
+            input_dir, output_dir,
+            speed_factors=[0.95, 1.0, 1.05],
+            volume_factors=[0.9, 1.0, 1.1]
+        )
+        
+        print(f"\nAugmentation results:")
+        print(f"  Original files: {stats['original_files']}")
+        print(f"  Speed augmented: {stats['speed_augmented']}")
+        print(f"  Volume augmented: {stats['volume_augmented']}")
+        print(f"  Total output: {stats['total_output']}")
+        
     elif args.process:
-        base_dir = os.path.dirname(os.path.abspath(__file__))
         input_dir = os.path.join(base_dir, args.input)
         output_dir = os.path.join(base_dir, args.output)
         
@@ -409,6 +1081,7 @@ def main():
         print(f"Input: {input_dir}")
         print(f"Output: {output_dir}")
         print(f"Sample rate: {args.sample_rate}")
+        print(f"Target LUFS: {args.target_lufs}")
         print(f"Trim silence: {not args.no_trim}")
         print(f"Normalize: {not args.no_normalize}")
         print()

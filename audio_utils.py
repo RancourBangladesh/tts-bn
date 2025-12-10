@@ -321,11 +321,11 @@ def trim_silence(input_path: str, output_path: str,
         # Get sample rate from temp file
         info = get_audio_info(temp_path)
         if info:
-            sample_rate = info['sample_rate']
             # Add padding using adelay and apad filters
+            delay_ms = int(target_leading * 1000)
             cmd_pad = [
                 'ffmpeg', '-y', '-i', temp_path,
-                '-af', f'adelay={int(target_leading*1000)}|{int(target_leading*1000)},'
+                '-af', f'adelay={delay_ms}|{delay_ms},'
                        f'apad=pad_dur={target_trailing}',
                 output_path
             ]
@@ -338,8 +338,8 @@ def trim_silence(input_path: str, output_path: str,
     except Exception as e:
         print(f"Trim error: {e}")
         # Clean up temp file if exists
-        if os.path.exists(input_path + '.temp.wav'):
-            os.remove(input_path + '.temp.wav')
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
         return False
 
 

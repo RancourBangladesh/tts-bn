@@ -77,10 +77,9 @@ CONSONANT_MAP: Dict[str, str] = {
     'ম': 'm',      # m
     
     # Semivowels and approximants (অন্তঃস্থ)
-    'য': 'dʒ',     # j sound (when initial) / য় when medial
+    'য': 'dʒ',     # j sound (when initial)
     'র': 'r',      # r (alveolar trill/tap)
     'ল': 'l',      # l (lateral approximant)
-    'ব': 'b',      # sometimes w in certain contexts
     
     # Sibilants (উষ্ম)
     'শ': 'ʃ',      # sh (voiceless postalveolar fricative)

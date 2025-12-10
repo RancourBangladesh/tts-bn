@@ -15,7 +15,9 @@ Training pipeline with:
 import os
 import json
 import math
+import random
 import logging
+import shutil
 from typing import Optional, Dict, Any, List, Tuple
 from pathlib import Path
 from datetime import datetime
@@ -301,14 +303,12 @@ class DataAugmentor:
         
         # Speed perturbation
         if self.aug_config.speed_perturbation:
-            import random
             factor = random.choice(self.aug_config.speed_factors)
             if factor != 1.0:
                 audio = self._speed_perturb(audio, factor)
         
         # Volume scaling
         if self.aug_config.volume_scaling:
-            import random
             scale = random.uniform(*self.aug_config.volume_range)
             audio = audio * scale
         

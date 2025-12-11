@@ -1,0 +1,50 @@
+# Dataset files (large)
+dataset/processed/
+dataset/recordings/
+*.zip
+dataset_combined.zip
+processed_wav_22k.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Model checkpoints (large)
+checkpoints/
+*.pth
+*.pt
+*.onnx
+
+# Logs
+*.log
+logs/

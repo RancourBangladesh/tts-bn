@@ -279,90 +279,7 @@
             flex-wrap: wrap;
         }
 
-        .prompt-text .word {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            margin: 0 2px;
-        }
 
-        .prompt-text .word.correct {
-            background: rgba(34, 197, 94, 0.25);
-            color: var(--accent-success);
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
-        }
-
-        .prompt-text .word.warning {
-            background: rgba(245, 158, 11, 0.25);
-            color: var(--accent-warning);
-            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-        }
-
-        .prompt-text .word.error {
-            background: rgba(239, 68, 68, 0.25);
-            color: var(--accent-error);
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
-            text-decoration: underline wavy var(--accent-error);
-        }
-
-        .prompt-text .word.pending {
-            background: transparent;
-            color: var(--text-secondary);
-        }
-
-        .prompt-text .word.spoken {
-            background: rgba(34, 197, 94, 0.2);
-            color: var(--accent-success);
-        }
-
-        .prompt-text .word.current {
-            background: rgba(99, 102, 241, 0.3);
-            color: var(--accent-primary);
-            animation: wordPulse 1s infinite;
-        }
-
-        .prompt-text .word.issue {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--accent-error);
-            text-decoration: underline wavy var(--accent-error);
-        }
-
-        @keyframes wordPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        /* Speech Recognition Status */
-        .sr-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: var(--bg-hover);
-            border-radius: 8px;
-            font-size: 0.85rem;
-            margin-top: 12px;
-        }
-
-        .sr-status.analyzing {
-            color: var(--accent-primary);
-            animation: pulse 1.5s infinite;
-        }
-
-        .sr-status .sr-score {
-            font-weight: 600;
-            margin-left: auto;
-        }
-
-        .sr-status .sr-score.good { color: var(--accent-success); }
-        .sr-status .sr-score.warning { color: var(--accent-warning); }
-        .sr-status .sr-score.bad { color: var(--accent-error); }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
 
         /* Waveform Visualizer */
         .waveform-section {
@@ -767,23 +684,7 @@
             display: none !important;
         }
 
-        /* GPU Badge */
-        .gpu-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            background: rgba(34, 197, 94, 0.15);
-            color: var(--accent-success);
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
 
-        .gpu-badge.inactive {
-            background: rgba(100, 116, 139, 0.15);
-            color: var(--text-muted);
-        }
     </style>
 </head>
 <body>
@@ -827,15 +728,8 @@
 
             <div class="speaker-section">
                 <div class="speaker-label">Audio Format</div>
-                <div style="font-size: 0.85rem; color: var(--text-secondary);">48kHz • Mono • 16-bit PCM</div>
-            </div>
-
-            <div class="speaker-section">
-                <div class="speaker-label">GPU Status</div>
-                <div class="gpu-badge" id="gpu-status">
-                    <span>●</span>
-                    <span id="gpu-text">Checking...</span>
-                </div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">22kHz • Mono • 16-bit PCM</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Optimized for training</div>
             </div>
         </aside>
 
@@ -855,11 +749,6 @@
                 <div class="text-display">
                     <div class="prompt-type-badge" id="prompt-type">sentence</div>
                     <div class="prompt-text bengali-text" id="prompt-text">Loading...</div>
-                    <div class="sr-status hidden" id="sr-status">
-                        <span id="sr-status-icon">🎯</span>
-                        <span id="sr-status-text">Analyzing speech...</span>
-                        <span class="sr-score" id="sr-score">--</span>
-                    </div>
                 </div>
 
                 <div class="waveform-section">
@@ -956,7 +845,6 @@
         let animationId = null;
         let sessionStartTime = Date.now();
         let recordingsHistory = {};
-        let speechRecognitionAvailable = false;
 
         // ==================== DOM ELEMENTS ====================
         const elements = {
@@ -993,60 +881,17 @@
             historyList: document.getElementById('history-list'),
             toast: document.getElementById('toast'),
             toastIcon: document.getElementById('toast-icon'),
-            toastMessage: document.getElementById('toast-message'),
-            gpuStatus: document.getElementById('gpu-status'),
-            gpuText: document.getElementById('gpu-text'),
-            // Speech recognition elements
-            srStatus: document.getElementById('sr-status'),
-            srStatusIcon: document.getElementById('sr-status-icon'),
-            srStatusText: document.getElementById('sr-status-text'),
-            srScore: document.getElementById('sr-score'),
+            toastMessage: document.getElementById('toast-message')
         };
 
         // ==================== INITIALIZATION ====================
         async function init() {
             await loadPrompts();
             await loadStats();
-            await checkGPUStatus();
-            await checkSpeechRecognitionStatus();
             await initMediaRecorder();
             setupEventListeners();
             updateUI();
             startSessionTimer();
-        }
-
-        async function checkSpeechRecognitionStatus() {
-            try {
-                const response = await fetch('/api/speech-recognition/status');
-                const data = await response.json();
-                if (data.ok && data.available) {
-                    speechRecognitionAvailable = true;
-                    console.log(`Speech recognition available (${data.model_size} model on ${data.device})`);
-                } else {
-                    speechRecognitionAvailable = false;
-                    console.log('Speech recognition not available');
-                }
-            } catch (error) {
-                speechRecognitionAvailable = false;
-                console.log('Speech recognition check failed:', error);
-            }
-        }
-
-        async function checkGPUStatus() {
-            try {
-                const response = await fetch('/api/gpu-status');
-                const data = await response.json();
-                if (data.ok && data.gpu_available) {
-                    elements.gpuStatus.classList.remove('inactive');
-                    elements.gpuText.textContent = data.gpu_name || 'GPU Active';
-                } else {
-                    elements.gpuStatus.classList.add('inactive');
-                    elements.gpuText.textContent = 'CPU Mode';
-                }
-            } catch (error) {
-                elements.gpuStatus.classList.add('inactive');
-                elements.gpuText.textContent = 'CPU Mode';
-            }
         }
 
         function startSessionTimer() {
@@ -1098,14 +943,14 @@
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: {
                         channelCount: 1,
-                        sampleRate: 48000,
+                        sampleRate: 22050,
                         echoCancellation: true,
                         noiseSuppression: true,
                         autoGainControl: true
                     }
                 });
 
-                audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 22050 });
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 2048;
                 microphone = audioContext.createMediaStreamSource(stream);
@@ -1134,9 +979,6 @@
 
                     drawWaveform(recordedBlob);
                     await checkQuality(recordedBlob);
-                    
-                    // Perform speech recognition and word highlighting
-                    await performSpeechRecognition(recordedBlob);
 
                     elements.btnSave.classList.remove('hidden');
                     elements.btnRerecord.classList.remove('hidden');
@@ -1147,7 +989,7 @@
                     showToast('Recording complete!', 'success');
                 };
 
-                showToast('Microphone ready (48kHz)', 'success');
+                showToast('Microphone ready (22kHz)', 'success');
             } catch (error) {
                 showToast('Microphone access denied', 'error');
             }
@@ -1349,113 +1191,7 @@
             }
         }
 
-        // ==================== SPEECH RECOGNITION ====================
-        async function performSpeechRecognition(blob) {
-            // Show speech recognition status
-            elements.srStatus.classList.remove('hidden');
-            elements.srStatus.classList.add('analyzing');
-            elements.srStatusIcon.textContent = '🔄';
-            elements.srStatusText.textContent = 'Analyzing speech with GPU...';
-            elements.srScore.textContent = '--';
-            elements.srScore.className = 'sr-score';
 
-            const prompt = prompts[currentIndex];
-            if (!prompt || !prompt.text) {
-                elements.srStatus.classList.add('hidden');
-                return;
-            }
-
-            try {
-                const formData = new FormData();
-                formData.append('audio_data', blob, 'speech.webm');
-                formData.append('expected_text', prompt.text);
-
-                const response = await fetch('/api/speech-recognition', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                elements.srStatus.classList.remove('analyzing');
-
-                if (data.ok && data.word_results) {
-                    // Update word highlighting based on recognition results
-                    updateWordHighlighting(data.word_results);
-
-                    // Update speech recognition score
-                    const score = data.overall_score;
-                    elements.srScore.textContent = `${score}%`;
-                    
-                    if (score >= 80) {
-                        elements.srStatusIcon.textContent = '✅';
-                        elements.srStatusText.textContent = 'Excellent pronunciation!';
-                        elements.srScore.className = 'sr-score good';
-                    } else if (score >= 50) {
-                        elements.srStatusIcon.textContent = '⚠️';
-                        elements.srStatusText.textContent = 'Some words need attention';
-                        elements.srScore.className = 'sr-score warning';
-                    } else {
-                        elements.srStatusIcon.textContent = '❌';
-                        elements.srStatusText.textContent = 'Please re-record';
-                        elements.srScore.className = 'sr-score bad';
-                    }
-
-                    // Show stats if available
-                    if (data.stats) {
-                        const statsText = `✓${data.stats.correct} ⚠${data.stats.warning} ✗${data.stats.error}`;
-                        elements.srStatusText.textContent += ` (${statsText})`;
-                    }
-
-                    if (!data.whisper_available) {
-                        elements.srStatusIcon.textContent = 'ℹ️';
-                        elements.srStatusText.textContent = 'Install Whisper for speech analysis';
-                        elements.srScore.textContent = '--';
-                    }
-                } else {
-                    elements.srStatusIcon.textContent = '⚠️';
-                    elements.srStatusText.textContent = data.error || 'Analysis failed';
-                    elements.srScore.textContent = '--';
-                }
-            } catch (error) {
-                console.error('Speech recognition error:', error);
-                elements.srStatus.classList.remove('analyzing');
-                elements.srStatusIcon.textContent = '⚠️';
-                elements.srStatusText.textContent = 'Recognition unavailable';
-                elements.srScore.textContent = '--';
-            }
-        }
-
-        function updateWordHighlighting(wordResults) {
-            const wordElements = elements.promptText.querySelectorAll('.word');
-            
-            wordResults.forEach((result, index) => {
-                if (index < wordElements.length) {
-                    const wordEl = wordElements[index];
-                    // Remove existing status classes
-                    wordEl.classList.remove('correct', 'warning', 'error', 'pending');
-                    // Add new status class
-                    wordEl.classList.add(result.status);
-                    
-                    // Add tooltip with confidence
-                    if (result.confidence > 0) {
-                        wordEl.title = `${Math.round(result.confidence * 100)}% match${result.spoken ? ' | Heard: ' + result.spoken : ''}`;
-                    }
-                }
-            });
-        }
-
-        function resetWordHighlighting() {
-            const wordElements = elements.promptText.querySelectorAll('.word');
-            wordElements.forEach(wordEl => {
-                wordEl.classList.remove('correct', 'warning', 'error', 'pending');
-                wordEl.title = '';
-            });
-            
-            // Hide speech recognition status
-            elements.srStatus.classList.add('hidden');
-            elements.srStatus.classList.remove('analyzing');
-        }
 
         // ==================== SAVE / NAVIGATION ====================
         async function saveRecording() {
@@ -1581,9 +1317,6 @@
             elements.waveformOverlay.textContent = 'Press record to start';
             elements.waveformInfo.textContent = 'No recording';
 
-            // Reset word highlighting
-            resetWordHighlighting();
-
             const canvas = elements.waveformCanvas;
             const ctx = canvas.getContext('2d');
             if (ctx) {
@@ -1601,19 +1334,8 @@
 
             const prompt = prompts[currentIndex];
 
-            // Safely escape HTML to prevent XSS
-            const words = prompt.text.split(/\s+/);
-            elements.promptText.innerHTML = '';
-            words.forEach((word, i) => {
-                const span = document.createElement('span');
-                span.className = 'word';
-                span.dataset.index = i;
-                span.textContent = word;  // textContent is safe
-                elements.promptText.appendChild(span);
-                if (i < words.length - 1) {
-                    elements.promptText.appendChild(document.createTextNode(' '));
-                }
-            });
+            // Display text directly (no word-by-word highlighting)
+            elements.promptText.textContent = prompt.text;
 
             elements.promptType.textContent = prompt.type || 'sentence';
             elements.promptCounter.textContent = `Prompt ${currentIndex + 1} of ${prompts.length}`;
@@ -1623,13 +1345,6 @@
             elements.btnNext.disabled = currentIndex === prompts.length - 1;
 
             updateHistorySidebar();
-        }
-
-        // Helper function to escape HTML for safe display
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
         }
 
         function updateHistorySidebar() {
@@ -1644,8 +1359,12 @@
                 const actualIndex = start + i;
                 const isCurrent = actualIndex === currentIndex;
                 
+                // Validate status to prevent XSS
+                const validStatuses = ['pending', 'done', 'retry'];
+                const safeStatus = validStatuses.includes(prompt.status) ? prompt.status : 'pending';
+                
                 const item = document.createElement('div');
-                item.className = `history-item ${escapeHtml(prompt.status || 'pending')} ${isCurrent ? 'current' : ''}`;
+                item.className = `history-item ${safeStatus} ${isCurrent ? 'current' : ''}`;
                 item.onclick = () => gotoHistoryItem(actualIndex);
                 
                 const idDiv = document.createElement('div');

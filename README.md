@@ -110,12 +110,12 @@ python optimize_dataset.py
 | `recording_prompts.csv` | Ready-to-use prompts for recording app |
 | `dataset_report.txt` | Detailed statistics and coverage analysis |
 
-### Recommendations for RTX 5060 Ti 16GB:
+### Recommendations for RTX 5060 Ti 16GB (Studio Quality):
 
-- **Optimal dataset size**: 8,000 sentences (~8-10 hours of audio)
-- **Expected recording time**: 16-20 hours
+- **Optimal dataset size**: 20,000 sentences (~33 hours of audio)
+- **Expected recording time**: 33-40 hours
 - **Training batch size**: 16 with gradient accumulation 4
-- **Estimated training time**: 24-48 hours
+- **Estimated training time**: 48-72 hours
 
 ---
 

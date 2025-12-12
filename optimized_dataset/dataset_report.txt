@@ -4,46 +4,46 @@ Bengali TTS Optimized Dataset Report
 
 OVERVIEW
 ------------------------------
-Total sentences: 8,000
-Total characters: 298,329
-Total words: 51,669
-Average sentence length: 37.3 chars
-Estimated audio duration: 16.6 hours
+Total sentences: 20,000
+Total characters: 600,208
+Total words: 108,011
+Average sentence length: 30.0 chars
+Estimated audio duration: 33.3 hours
 
 SENTENCE TYPES
 ------------------------------
-exclamation: 113 (1.4%)
-question: 808 (10.1%)
-statement: 7,079 (88.5%)
+exclamation: 559 (2.8%)
+question: 2,970 (14.8%)
+statement: 16,471 (82.4%)
 
 LENGTH DISTRIBUTION
 ------------------------------
 1-10 chars: 0 (0.0%)
-11-20 chars: 377 (4.7%)
-21-30 chars: 2,232 (27.9%)
-31-50 chars: 4,242 (53.0%)
-51-80 chars: 1,139 (14.2%)
-80+ chars: 10 (0.1%)
+11-20 chars: 5,990 (29.9%)
+21-30 chars: 6,781 (33.9%)
+31-50 chars: 5,200 (26.0%)
+51-80 chars: 1,948 (9.7%)
+80+ chars: 81 (0.4%)
 
 CONJUNCT COVERAGE
 ------------------------------
-ন্ত: 737
-ত্র: 613
-প্র: 468
-চ্ছ: 457
-ন্দ: 450
-ম্ব: 311
-ক্ষ: 284
-ঙ্গ: 240
-র্য: 215
-ক্ত: 182
-ষ্ট: 178
-ন্ধ: 164
-স্ত: 134
-ব্দ: 130
-জ্ঞ: 114
-র্ত: 107
-স্থ: 101
-ঙ্ক: 76
-ণ্ড: 75
-হ্য: 73
+ন্ত: 1488
+ন্দ: 1280
+চ্ছ: 1250
+প্র: 922
+ত্র: 781
+ন্ধ: 620
+ম্ব: 427
+র্য: 419
+ক্ষ: 391
+ম্প: 365
+ঙ্গ: 313
+স্ত: 310
+ষ্ট: 303
+র্ক: 301
+দ্র: 300
+স্থ: 258
+স্ক: 238
+ক্ত: 233
+গ্র: 214
+ল্প: 201

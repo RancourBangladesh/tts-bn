@@ -9,15 +9,20 @@ scipy>=1.10.0
 numpy>=1.24.0
 
 # PyTorch with CUDA support (install separately for your GPU)
-# For GTX 1660 Super, use:
-# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# For RTX 5060 Ti, use:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 torch>=2.0.0
 torchaudio>=2.0.0
 
 # TTS training (Coqui TTS)
 TTS>=0.22.0
 
+# Speech Recognition (for real-time word highlighting)
+openai-whisper>=20231117
+faster-whisper>=1.0.0
+
 # Utilities
 tqdm>=4.65.0
 pandas>=2.0.0
 python-dateutil>=2.8.0
+python-Levenshtein>=0.23.0

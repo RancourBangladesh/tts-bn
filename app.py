@@ -5,6 +5,7 @@ Bengali TTS Recording Flask Application - Modern Studio Edition
 Web-based audio recorder for collecting voice samples.
 Features:
 - Modern UI with real-time waveform visualization
+- Real-time speech recognition with word highlighting (GPU accelerated)
 - Real-time audio quality checks
 - Prompt navigation and status tracking
 - GPU status monitoring
@@ -18,6 +19,8 @@ import json
 import wave
 import glob
 import subprocess
+import re
+import unicodedata
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory
 
@@ -26,13 +29,45 @@ app = Flask(__name__)
 # Check for GPU availability
 GPU_AVAILABLE = False
 GPU_NAME = "CPU Mode"
+TORCH_DEVICE = "cpu"
 try:
     import torch
     if torch.cuda.is_available():
         GPU_AVAILABLE = True
         GPU_NAME = torch.cuda.get_device_name(0)
+        TORCH_DEVICE = "cuda"
 except ImportError:
     pass
+
+# Initialize Whisper model for speech recognition (lazy loading)
+whisper_model = None
+WHISPER_MODEL_SIZE = "small"  # Options: tiny, base, small, medium, large
+
+
+def get_whisper_model():
+    """Lazy load Whisper model for speech recognition."""
+    global whisper_model
+    if whisper_model is None:
+        try:
+            # Try faster-whisper first (more efficient)
+            from faster_whisper import WhisperModel
+            compute_type = "float16" if GPU_AVAILABLE else "int8"
+            whisper_model = WhisperModel(
+                WHISPER_MODEL_SIZE, 
+                device=TORCH_DEVICE, 
+                compute_type=compute_type
+            )
+            print(f"✓ Loaded faster-whisper model ({WHISPER_MODEL_SIZE}) on {TORCH_DEVICE}")
+        except ImportError:
+            try:
+                # Fall back to openai-whisper
+                import whisper
+                whisper_model = whisper.load_model(WHISPER_MODEL_SIZE, device=TORCH_DEVICE)
+                print(f"✓ Loaded whisper model ({WHISPER_MODEL_SIZE}) on {TORCH_DEVICE}")
+            except ImportError:
+                print("⚠ Whisper not installed. Speech recognition disabled.")
+                print("  Run: pip install faster-whisper or pip install openai-whisper")
+    return whisper_model
 
 # Configuration
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -475,6 +510,238 @@ def navigate_prompts():
         'index': new_index,
         'total': len(prompts),
         'context': context
+    })
+
+
+def normalize_bengali_text(text):
+    """Normalize Bengali text for comparison."""
+    # Remove common punctuation
+    text = re.sub(r'[।,!?।\-\–\—\"\'\'\"\"\(\)\[\]]+', ' ', text)
+    # Normalize Unicode
+    text = unicodedata.normalize('NFC', text)
+    # Remove extra whitespace
+    text = ' '.join(text.split())
+    return text.lower().strip()
+
+
+def calculate_word_similarity(word1, word2):
+    """Calculate similarity between two words (0-1 scale)."""
+    if not word1 or not word2:
+        return 0.0
+    
+    word1 = normalize_bengali_text(word1)
+    word2 = normalize_bengali_text(word2)
+    
+    if word1 == word2:
+        return 1.0
+    
+    # Try Levenshtein distance for similar words
+    try:
+        import Levenshtein
+        distance = Levenshtein.distance(word1, word2)
+        max_len = max(len(word1), len(word2))
+        if max_len == 0:
+            return 1.0
+        similarity = 1.0 - (distance / max_len)
+        return similarity
+    except ImportError:
+        # Simple character overlap fallback
+        common = set(word1) & set(word2)
+        total = set(word1) | set(word2)
+        if not total:
+            return 1.0
+        return len(common) / len(total)
+
+
+def align_words(expected_words, spoken_words):
+    """
+    Align spoken words with expected words and calculate match quality.
+    Returns list of (word, status, confidence) where status is 'correct', 'warning', 'error'.
+    """
+    results = []
+    spoken_idx = 0
+    
+    for expected in expected_words:
+        expected_normalized = normalize_bengali_text(expected)
+        if not expected_normalized:
+            continue
+        
+        best_match = None
+        best_similarity = 0.0
+        best_idx = spoken_idx
+        
+        # Search within a window of upcoming spoken words
+        search_end = min(spoken_idx + 5, len(spoken_words))
+        for i in range(spoken_idx, search_end):
+            if i >= len(spoken_words):
+                break
+            spoken = normalize_bengali_text(spoken_words[i])
+            similarity = calculate_word_similarity(expected_normalized, spoken)
+            if similarity > best_similarity:
+                best_similarity = similarity
+                best_match = spoken_words[i]
+                best_idx = i
+        
+        # Determine status based on similarity
+        if best_similarity >= 0.85:
+            status = 'correct'  # Green
+            spoken_idx = best_idx + 1
+        elif best_similarity >= 0.5:
+            status = 'warning'  # Yellow
+            spoken_idx = best_idx + 1
+        else:
+            status = 'error'    # Red (missed or wrong)
+            # Don't advance spoken_idx for missed words
+        
+        results.append({
+            'word': expected,
+            'status': status,
+            'confidence': round(best_similarity, 2),
+            'spoken': best_match
+        })
+    
+    return results
+
+
+@app.route('/api/speech-recognition', methods=['POST'])
+def recognize_speech():
+    """
+    Perform speech recognition on audio and compare with expected text.
+    Returns word-by-word analysis with status (correct/warning/error).
+    Uses GPU if available for faster processing.
+    """
+    audio_file = request.files.get('audio_data')
+    expected_text = request.form.get('expected_text', '')
+    
+    if not audio_file:
+        return jsonify({'ok': False, 'error': 'No audio data received'})
+    
+    if not expected_text:
+        return jsonify({'ok': False, 'error': 'No expected text provided'})
+    
+    # Save temporarily
+    temp_path = os.path.join(RECORDINGS_DIR, 'temp_speech_rec.webm')
+    wav_path = os.path.join(RECORDINGS_DIR, 'temp_speech_rec.wav')
+    
+    try:
+        audio_file.save(temp_path)
+        
+        # Convert to WAV for Whisper
+        if not convert_to_wav(temp_path, wav_path):
+            return jsonify({'ok': False, 'error': 'Audio conversion failed'})
+        
+        # Get Whisper model
+        model = get_whisper_model()
+        if model is None:
+            # Return placeholder result if Whisper not available
+            expected_words = expected_text.split()
+            return jsonify({
+                'ok': True,
+                'whisper_available': False,
+                'message': 'Whisper not installed. Install with: pip install faster-whisper',
+                'transcript': '',
+                'word_results': [{'word': w, 'status': 'pending', 'confidence': 0} for w in expected_words],
+                'overall_score': 0
+            })
+        
+        # Perform speech recognition
+        transcript = ""
+        spoken_words = []
+        
+        try:
+            # Check if it's faster-whisper or openai-whisper
+            if hasattr(model, 'transcribe') and callable(model.transcribe):
+                # Check model type by trying faster-whisper first
+                try:
+                    # faster-whisper returns segments generator
+                    segments, info = model.transcribe(
+                        wav_path, 
+                        language="bn",  # Bengali
+                        task="transcribe",
+                        beam_size=5,
+                        word_timestamps=True
+                    )
+                    words_list = []
+                    for segment in segments:
+                        if hasattr(segment, 'words') and segment.words:
+                            for word_info in segment.words:
+                                words_list.append(word_info.word)
+                        else:
+                            words_list.extend(segment.text.split())
+                    transcript = ' '.join(words_list)
+                    spoken_words = words_list
+                except TypeError:
+                    # openai-whisper style
+                    result = model.transcribe(
+                        wav_path, 
+                        language="bn",
+                        task="transcribe"
+                    )
+                    transcript = result.get('text', '')
+                    spoken_words = transcript.split()
+            else:
+                return jsonify({'ok': False, 'error': 'Invalid Whisper model'})
+                
+        except Exception as e:
+            print(f"Whisper transcription error: {e}")
+            return jsonify({'ok': False, 'error': f'Transcription failed: {str(e)}'})
+        
+        # Split expected text into words
+        expected_words = expected_text.split()
+        
+        # Align and compare words
+        word_results = align_words(expected_words, spoken_words)
+        
+        # Calculate overall score
+        correct_count = sum(1 for r in word_results if r['status'] == 'correct')
+        warning_count = sum(1 for r in word_results if r['status'] == 'warning')
+        total = len(word_results)
+        
+        if total > 0:
+            overall_score = int(((correct_count + (warning_count * 0.5)) / total) * 100)
+        else:
+            overall_score = 0
+        
+        # Clean up
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
+        
+        return jsonify({
+            'ok': True,
+            'whisper_available': True,
+            'transcript': transcript,
+            'word_results': word_results,
+            'overall_score': overall_score,
+            'stats': {
+                'correct': correct_count,
+                'warning': warning_count,
+                'error': total - correct_count - warning_count,
+                'total': total
+            },
+            'device': TORCH_DEVICE
+        })
+        
+    except Exception as e:
+        # Clean up on error
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
+        return jsonify({'ok': False, 'error': str(e)})
+
+
+@app.route('/api/speech-recognition/status')
+def speech_recognition_status():
+    """Check if speech recognition is available and ready."""
+    model = get_whisper_model()
+    return jsonify({
+        'ok': True,
+        'available': model is not None,
+        'model_size': WHISPER_MODEL_SIZE,
+        'device': TORCH_DEVICE,
+        'gpu_name': GPU_NAME if GPU_AVAILABLE else None
     })
 
 

@@ -283,8 +283,32 @@
             display: inline-block;
             padding: 4px 8px;
             border-radius: 6px;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             margin: 0 2px;
+        }
+
+        .prompt-text .word.correct {
+            background: rgba(34, 197, 94, 0.25);
+            color: var(--accent-success);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+        }
+
+        .prompt-text .word.warning {
+            background: rgba(245, 158, 11, 0.25);
+            color: var(--accent-warning);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+        }
+
+        .prompt-text .word.error {
+            background: rgba(239, 68, 68, 0.25);
+            color: var(--accent-error);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+            text-decoration: underline wavy var(--accent-error);
+        }
+
+        .prompt-text .word.pending {
+            background: transparent;
+            color: var(--text-secondary);
         }
 
         .prompt-text .word.spoken {
@@ -307,6 +331,37 @@
         @keyframes wordPulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
+        }
+
+        /* Speech Recognition Status */
+        .sr-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-hover);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+
+        .sr-status.analyzing {
+            color: var(--accent-primary);
+            animation: pulse 1.5s infinite;
+        }
+
+        .sr-status .sr-score {
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .sr-status .sr-score.good { color: var(--accent-success); }
+        .sr-status .sr-score.warning { color: var(--accent-warning); }
+        .sr-status .sr-score.bad { color: var(--accent-error); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
 
         /* Waveform Visualizer */
@@ -800,6 +855,11 @@
                 <div class="text-display">
                     <div class="prompt-type-badge" id="prompt-type">sentence</div>
                     <div class="prompt-text bengali-text" id="prompt-text">Loading...</div>
+                    <div class="sr-status hidden" id="sr-status">
+                        <span id="sr-status-icon">🎯</span>
+                        <span id="sr-status-text">Analyzing speech...</span>
+                        <span class="sr-score" id="sr-score">--</span>
+                    </div>
                 </div>
 
                 <div class="waveform-section">
@@ -896,6 +956,7 @@
         let animationId = null;
         let sessionStartTime = Date.now();
         let recordingsHistory = {};
+        let speechRecognitionAvailable = false;
 
         // ==================== DOM ELEMENTS ====================
         const elements = {
@@ -935,6 +996,11 @@
             toastMessage: document.getElementById('toast-message'),
             gpuStatus: document.getElementById('gpu-status'),
             gpuText: document.getElementById('gpu-text'),
+            // Speech recognition elements
+            srStatus: document.getElementById('sr-status'),
+            srStatusIcon: document.getElementById('sr-status-icon'),
+            srStatusText: document.getElementById('sr-status-text'),
+            srScore: document.getElementById('sr-score'),
         };
 
         // ==================== INITIALIZATION ====================
@@ -942,10 +1008,28 @@
             await loadPrompts();
             await loadStats();
             await checkGPUStatus();
+            await checkSpeechRecognitionStatus();
             await initMediaRecorder();
             setupEventListeners();
             updateUI();
             startSessionTimer();
+        }
+
+        async function checkSpeechRecognitionStatus() {
+            try {
+                const response = await fetch('/api/speech-recognition/status');
+                const data = await response.json();
+                if (data.ok && data.available) {
+                    speechRecognitionAvailable = true;
+                    console.log(`Speech recognition available (${data.model_size} model on ${data.device})`);
+                } else {
+                    speechRecognitionAvailable = false;
+                    console.log('Speech recognition not available');
+                }
+            } catch (error) {
+                speechRecognitionAvailable = false;
+                console.log('Speech recognition check failed:', error);
+            }
         }
 
         async function checkGPUStatus() {
@@ -1050,6 +1134,9 @@
 
                     drawWaveform(recordedBlob);
                     await checkQuality(recordedBlob);
+                    
+                    // Perform speech recognition and word highlighting
+                    await performSpeechRecognition(recordedBlob);
 
                     elements.btnSave.classList.remove('hidden');
                     elements.btnRerecord.classList.remove('hidden');
@@ -1262,6 +1349,114 @@
             }
         }
 
+        // ==================== SPEECH RECOGNITION ====================
+        async function performSpeechRecognition(blob) {
+            // Show speech recognition status
+            elements.srStatus.classList.remove('hidden');
+            elements.srStatus.classList.add('analyzing');
+            elements.srStatusIcon.textContent = '🔄';
+            elements.srStatusText.textContent = 'Analyzing speech with GPU...';
+            elements.srScore.textContent = '--';
+            elements.srScore.className = 'sr-score';
+
+            const prompt = prompts[currentIndex];
+            if (!prompt || !prompt.text) {
+                elements.srStatus.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('audio_data', blob, 'speech.webm');
+                formData.append('expected_text', prompt.text);
+
+                const response = await fetch('/api/speech-recognition', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                elements.srStatus.classList.remove('analyzing');
+
+                if (data.ok && data.word_results) {
+                    // Update word highlighting based on recognition results
+                    updateWordHighlighting(data.word_results);
+
+                    // Update speech recognition score
+                    const score = data.overall_score;
+                    elements.srScore.textContent = `${score}%`;
+                    
+                    if (score >= 80) {
+                        elements.srStatusIcon.textContent = '✅';
+                        elements.srStatusText.textContent = 'Excellent pronunciation!';
+                        elements.srScore.className = 'sr-score good';
+                    } else if (score >= 50) {
+                        elements.srStatusIcon.textContent = '⚠️';
+                        elements.srStatusText.textContent = 'Some words need attention';
+                        elements.srScore.className = 'sr-score warning';
+                    } else {
+                        elements.srStatusIcon.textContent = '❌';
+                        elements.srStatusText.textContent = 'Please re-record';
+                        elements.srScore.className = 'sr-score bad';
+                    }
+
+                    // Show stats if available
+                    if (data.stats) {
+                        const statsText = `✓${data.stats.correct} ⚠${data.stats.warning} ✗${data.stats.error}`;
+                        elements.srStatusText.textContent += ` (${statsText})`;
+                    }
+
+                    if (!data.whisper_available) {
+                        elements.srStatusIcon.textContent = 'ℹ️';
+                        elements.srStatusText.textContent = 'Install Whisper for speech analysis';
+                        elements.srScore.textContent = '--';
+                    }
+                } else {
+                    elements.srStatusIcon.textContent = '⚠️';
+                    elements.srStatusText.textContent = data.error || 'Analysis failed';
+                    elements.srScore.textContent = '--';
+                }
+            } catch (error) {
+                console.error('Speech recognition error:', error);
+                elements.srStatus.classList.remove('analyzing');
+                elements.srStatusIcon.textContent = '⚠️';
+                elements.srStatusText.textContent = 'Recognition unavailable';
+                elements.srScore.textContent = '--';
+            }
+        }
+
+        function updateWordHighlighting(wordResults) {
+            const wordElements = elements.promptText.querySelectorAll('.word');
+            
+            wordResults.forEach((result, index) => {
+                if (index < wordElements.length) {
+                    const wordEl = wordElements[index];
+                    // Remove existing status classes
+                    wordEl.classList.remove('correct', 'warning', 'error', 'pending');
+                    // Add new status class
+                    wordEl.classList.add(result.status);
+                    
+                    // Add tooltip with confidence
+                    if (result.confidence > 0) {
+                        wordEl.title = `${Math.round(result.confidence * 100)}% match${result.spoken ? ' | Heard: ' + result.spoken : ''}`;
+                    }
+                }
+            });
+        }
+
+        function resetWordHighlighting() {
+            const wordElements = elements.promptText.querySelectorAll('.word');
+            wordElements.forEach(wordEl => {
+                wordEl.classList.remove('correct', 'warning', 'error', 'pending');
+                wordEl.title = '';
+            });
+            
+            // Hide speech recognition status
+            elements.srStatus.classList.add('hidden');
+            elements.srStatus.classList.remove('analyzing');
+        }
+
         // ==================== SAVE / NAVIGATION ====================
         async function saveRecording() {
             if (!recordedBlob) return;
@@ -1385,6 +1580,9 @@
             elements.waveformOverlay.classList.remove('hidden');
             elements.waveformOverlay.textContent = 'Press record to start';
             elements.waveformInfo.textContent = 'No recording';
+
+            // Reset word highlighting
+            resetWordHighlighting();
 
             const canvas = elements.waveformCanvas;
             const ctx = canvas.getContext('2d');

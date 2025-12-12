@@ -1248,9 +1248,14 @@
                     elements.qualityScore.textContent = `${data.quality_score}%`;
                     elements.qualityScore.className = `quality-score ${data.quality_score > 50 ? 'warning' : 'bad'}`;
 
-                    elements.qualityIssues.innerHTML = data.issues.map(issue =>
-                        `<span class="quality-issue">${issue}</span>`
-                    ).join('');
+                    // Safely add quality issues
+                    elements.qualityIssues.innerHTML = '';
+                    data.issues.forEach(issue => {
+                        const span = document.createElement('span');
+                        span.className = 'quality-issue';
+                        span.textContent = issue;  // textContent is safe
+                        elements.qualityIssues.appendChild(span);
+                    });
                 }
             } catch (error) {
                 console.error('Quality check error:', error);
@@ -1398,10 +1403,19 @@
 
             const prompt = prompts[currentIndex];
 
+            // Safely escape HTML to prevent XSS
             const words = prompt.text.split(/\s+/);
-            elements.promptText.innerHTML = words.map((word, i) =>
-                `<span class="word" data-index="${i}">${word}</span>`
-            ).join(' ');
+            elements.promptText.innerHTML = '';
+            words.forEach((word, i) => {
+                const span = document.createElement('span');
+                span.className = 'word';
+                span.dataset.index = i;
+                span.textContent = word;  // textContent is safe
+                elements.promptText.appendChild(span);
+                if (i < words.length - 1) {
+                    elements.promptText.appendChild(document.createTextNode(' '));
+                }
+            });
 
             elements.promptType.textContent = prompt.type || 'sentence';
             elements.promptCounter.textContent = `Prompt ${currentIndex + 1} of ${prompts.length}`;
@@ -1413,28 +1427,60 @@
             updateHistorySidebar();
         }
 
+        // Helper function to escape HTML for safe display
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function updateHistorySidebar() {
             const start = Math.max(0, currentIndex - 3);
             const end = Math.min(prompts.length, currentIndex + 4);
             const visiblePrompts = prompts.slice(start, end);
 
-            elements.historyList.innerHTML = visiblePrompts.map((prompt, i) => {
+            // Clear and rebuild safely
+            elements.historyList.innerHTML = '';
+            
+            visiblePrompts.forEach((prompt, i) => {
                 const actualIndex = start + i;
                 const isCurrent = actualIndex === currentIndex;
-                return `
-                    <div class="history-item ${prompt.status} ${isCurrent ? 'current' : ''}"
-                         onclick="gotoHistoryItem(${actualIndex})">
-                        <div class="history-item-id">#${actualIndex + 1} • ${prompt.type}</div>
-                        <div class="history-item-text bengali-text">${prompt.text}</div>
-                        ${prompt.status === 'done' ? `
-                            <div class="history-item-actions">
-                                <button class="history-action-btn play" onclick="event.stopPropagation(); playHistoryItem('${prompt.prompt_id}')">▶ Play</button>
-                                <button class="history-action-btn rerecord" onclick="event.stopPropagation(); rerecordHistoryItem(${actualIndex})">↺ Re-record</button>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-            }).join('');
+                
+                const item = document.createElement('div');
+                item.className = `history-item ${escapeHtml(prompt.status || 'pending')} ${isCurrent ? 'current' : ''}`;
+                item.onclick = () => gotoHistoryItem(actualIndex);
+                
+                const idDiv = document.createElement('div');
+                idDiv.className = 'history-item-id';
+                idDiv.textContent = `#${actualIndex + 1} • ${prompt.type || 'sentence'}`;
+                item.appendChild(idDiv);
+                
+                const textDiv = document.createElement('div');
+                textDiv.className = 'history-item-text bengali-text';
+                textDiv.textContent = prompt.text;
+                item.appendChild(textDiv);
+                
+                if (prompt.status === 'done') {
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'history-item-actions';
+                    
+                    const playBtn = document.createElement('button');
+                    playBtn.className = 'history-action-btn play';
+                    playBtn.textContent = '▶ Play';
+                    playBtn.onclick = (e) => { e.stopPropagation(); playHistoryItem(prompt.prompt_id); };
+                    actionsDiv.appendChild(playBtn);
+                    
+                    const rerecordBtn = document.createElement('button');
+                    rerecordBtn.className = 'history-action-btn rerecord';
+                    rerecordBtn.textContent = '↺ Re-record';
+                    rerecordBtn.onclick = (e) => { e.stopPropagation(); rerecordHistoryItem(actualIndex); };
+                    actionsDiv.appendChild(rerecordBtn);
+                    
+                    item.appendChild(actionsDiv);
+                }
+                
+                elements.historyList.appendChild(item);
+            });
         }
 
         function gotoHistoryItem(index) {

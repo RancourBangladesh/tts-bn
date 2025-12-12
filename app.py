@@ -95,14 +95,25 @@ def is_safe_path(base_dir, path):
     return target.startswith(base + os.sep) or target == base
 
 
+def is_safe_tmp_path(path):
+    """Check if path is a safe temporary file path."""
+    # Resolve to absolute path
+    abs_path = os.path.abspath(path)
+    # Check if it's in a temp directory
+    import tempfile
+    temp_dir = os.path.abspath(tempfile.gettempdir())
+    return abs_path.startswith(temp_dir + os.sep)
+
+
 def convert_to_wav(input_path, output_path):
     """Convert audio file to WAV format (22kHz, mono, 16-bit optimized for training)."""
     # Validate paths to prevent command injection
     if not is_safe_path(DATASET_DIR, input_path):
-        print(f"Security error: Invalid path")
+        print(f"Security error: Invalid input path")
         return False
     
-    if not (is_safe_path(DATASET_DIR, output_path) or output_path.startswith('/tmp/')):
+    # Output path must be either in DATASET_DIR or in temp directory
+    if not (is_safe_path(DATASET_DIR, output_path) or is_safe_tmp_path(output_path)):
         print(f"Security error: Invalid output path")
         return False
     

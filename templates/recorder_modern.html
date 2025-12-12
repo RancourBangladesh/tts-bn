@@ -1359,8 +1359,12 @@
                 const actualIndex = start + i;
                 const isCurrent = actualIndex === currentIndex;
                 
+                // Validate status to prevent XSS
+                const validStatuses = ['pending', 'done', 'retry'];
+                const safeStatus = validStatuses.includes(prompt.status) ? prompt.status : 'pending';
+                
                 const item = document.createElement('div');
-                item.className = `history-item ${prompt.status || 'pending'} ${isCurrent ? 'current' : ''}`;
+                item.className = `history-item ${safeStatus} ${isCurrent ? 'current' : ''}`;
                 item.onclick = () => gotoHistoryItem(actualIndex);
                 
                 const idDiv = document.createElement('div');

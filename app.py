@@ -108,7 +108,8 @@ def is_safe_tmp_path(path):
 def convert_to_wav(input_path, output_path):
     """Convert audio file to WAV format (22kHz, mono, 16-bit optimized for training)."""
     # Validate paths to prevent command injection
-    if not is_safe_path(DATASET_DIR, input_path):
+    # Input path can be either in DATASET_DIR or in temp directory
+    if not (is_safe_path(DATASET_DIR, input_path) or is_safe_tmp_path(input_path)):
         print(f"Security error: Invalid input path")
         return False
     

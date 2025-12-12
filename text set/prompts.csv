@@ -1,0 +1,734 @@
+prompt_id,type,text,status
+00001,vowel,অ,done
+00002,vowel,আ,done
+00003,vowel,ই,done
+00004,vowel,ঈ,done
+00005,vowel,উ,done
+00006,vowel,ঊ,done
+00007,vowel,ঋ,done
+00008,vowel,এ,done
+00009,vowel,ঐ,done
+00010,vowel,ও,done
+00011,vowel,ঔ,done
+00012,consonant,ক,done
+00013,consonant,খ,done
+00014,consonant,গ,done
+00015,consonant,ঘ,done
+00016,consonant,ঙ,done
+00017,consonant,চ,done
+00018,consonant,ছ,done
+00019,consonant,জ,done
+00020,consonant,ঝ,done
+00021,consonant,ঞ,done
+00022,consonant,ট,done
+00023,consonant,ঠ,done
+00024,consonant,ড,done
+00025,consonant,ঢ,done
+00026,consonant,ণ,done
+00027,consonant,ত,done
+00028,consonant,থ,done
+00029,consonant,দ,done
+00030,consonant,ধ,done
+00031,consonant,ন,done
+00032,consonant,প,done
+00033,consonant,ফ,done
+00034,consonant,ব,done
+00035,consonant,ভ,done
+00036,consonant,ম,done
+00037,consonant,য,done
+00038,consonant,র,done
+00039,consonant,ল,done
+00040,consonant,শ,done
+00041,consonant,ষ,done
+00042,consonant,স,done
+00043,consonant,হ,done
+00044,consonant,ড়,done
+00045,consonant,ঢ়,done
+00046,consonant,য়,done
+00047,consonant_matra,কা,done
+00048,consonant_matra,কি,done
+00049,consonant_matra,কী,done
+00050,consonant_matra,কু,done
+00051,consonant_matra,কূ,done
+00052,consonant_matra,কৃ,done
+00053,consonant_matra,কে,done
+00054,consonant_matra,কৈ,done
+00055,consonant_matra,কো,done
+00056,consonant_matra,কৌ,done
+00057,consonant_matra,খা,done
+00058,consonant_matra,খি,done
+00059,consonant_matra,খী,done
+00060,consonant_matra,খু,done
+00061,consonant_matra,খূ,done
+00062,consonant_matra,খৃ,done
+00063,consonant_matra,খে,done
+00064,consonant_matra,খৈ,done
+00065,consonant_matra,খো,done
+00066,consonant_matra,খৌ,done
+00067,consonant_matra,গা,done
+00068,consonant_matra,গি,done
+00069,consonant_matra,গী,done
+00070,consonant_matra,গু,done
+00071,consonant_matra,গূ,done
+00072,consonant_matra,গৃ,done
+00073,consonant_matra,গে,done
+00074,consonant_matra,গৈ,done
+00075,consonant_matra,গো,done
+00076,consonant_matra,গৌ,done
+00077,consonant_matra,ঘা,done
+00078,consonant_matra,ঘি,done
+00079,consonant_matra,ঘী,done
+00080,consonant_matra,ঘু,done
+00081,consonant_matra,ঘূ,done
+00082,consonant_matra,ঘৃ,done
+00083,consonant_matra,ঘে,done
+00084,consonant_matra,ঘৈ,done
+00085,consonant_matra,ঘো,done
+00086,consonant_matra,ঘৌ,done
+00087,consonant_matra,ঙা,done
+00088,consonant_matra,ঙি,done
+00089,consonant_matra,ঙী,done
+00090,consonant_matra,ঙু,done
+00091,consonant_matra,ঙূ,done
+00092,consonant_matra,ঙৃ,done
+00093,consonant_matra,ঙে,done
+00094,consonant_matra,ঙৈ,done
+00095,consonant_matra,ঙো,done
+00096,consonant_matra,ঙৌ,done
+00097,consonant_matra,চা,done
+00098,consonant_matra,চি,done
+00099,consonant_matra,চী,done
+00100,consonant_matra,চু,done
+00101,consonant_matra,চূ,done
+00102,consonant_matra,চৃ,done
+00103,consonant_matra,চে,done
+00104,consonant_matra,চৈ,done
+00105,consonant_matra,চো,done
+00106,consonant_matra,চৌ,done
+00107,consonant_matra,ছা,done
+00108,consonant_matra,ছি,done
+00109,consonant_matra,ছী,done
+00110,consonant_matra,ছু,done
+00111,consonant_matra,ছূ,done
+00112,consonant_matra,ছৃ,done
+00113,consonant_matra,ছে,done
+00114,consonant_matra,ছৈ,done
+00115,consonant_matra,ছো,done
+00116,consonant_matra,ছৌ,done
+00117,consonant_matra,জা,done
+00118,consonant_matra,জি,done
+00119,consonant_matra,জী,done
+00120,consonant_matra,জু,done
+00121,consonant_matra,জূ,done
+00122,consonant_matra,জৃ,done
+00123,consonant_matra,জে,done
+00124,consonant_matra,জৈ,done
+00125,consonant_matra,জো,done
+00126,consonant_matra,জৌ,done
+00127,consonant_matra,ঝা,done
+00128,consonant_matra,ঝি,done
+00129,consonant_matra,ঝী,done
+00130,consonant_matra,ঝু,done
+00131,consonant_matra,ঝূ,done
+00132,consonant_matra,ঝৃ,done
+00133,consonant_matra,ঝে,done
+00134,consonant_matra,ঝৈ,done
+00135,consonant_matra,ঝো,done
+00136,consonant_matra,ঝৌ,done
+00137,consonant_matra,ঞা,done
+00138,consonant_matra,ঞি,done
+00139,consonant_matra,ঞী,done
+00140,consonant_matra,ঞু,done
+00141,consonant_matra,ঞূ,done
+00142,consonant_matra,ঞৃ,done
+00143,consonant_matra,ঞে,done
+00144,consonant_matra,ঞৈ,done
+00145,consonant_matra,ঞো,done
+00146,consonant_matra,ঞৌ,done
+00147,consonant_matra,টা,done
+00148,consonant_matra,টি,done
+00149,consonant_matra,টী,done
+00150,consonant_matra,টু,done
+00151,consonant_matra,টূ,done
+00152,consonant_matra,টৃ,done
+00153,consonant_matra,টে,done
+00154,consonant_matra,টৈ,done
+00155,consonant_matra,টো,done
+00156,consonant_matra,টৌ,done
+00157,consonant_matra,ঠা,done
+00158,consonant_matra,ঠি,done
+00159,consonant_matra,ঠী,done
+00160,consonant_matra,ঠু,done
+00161,consonant_matra,ঠূ,done
+00162,consonant_matra,ঠৃ,done
+00163,consonant_matra,ঠে,done
+00164,consonant_matra,ঠৈ,done
+00165,consonant_matra,ঠো,done
+00166,consonant_matra,ঠৌ,done
+00167,consonant_matra,ডা,done
+00168,consonant_matra,ডি,done
+00169,consonant_matra,ডী,done
+00170,consonant_matra,ডু,done
+00171,consonant_matra,ডূ,done
+00172,consonant_matra,ডৃ,done
+00173,consonant_matra,ডে,done
+00174,consonant_matra,ডৈ,done
+00175,consonant_matra,ডো,done
+00176,consonant_matra,ডৌ,done
+00177,consonant_matra,ঢা,done
+00178,consonant_matra,ঢি,done
+00179,consonant_matra,ঢী,done
+00180,consonant_matra,ঢু,done
+00181,consonant_matra,ঢূ,done
+00182,consonant_matra,ঢৃ,done
+00183,consonant_matra,ঢে,done
+00184,consonant_matra,ঢৈ,done
+00185,consonant_matra,ঢো,done
+00186,consonant_matra,ঢৌ,done
+00187,consonant_matra,ণা,done
+00188,consonant_matra,ণি,done
+00189,consonant_matra,ণী,done
+00190,consonant_matra,ণু,done
+00191,consonant_matra,ণূ,done
+00192,consonant_matra,ণৃ,done
+00193,consonant_matra,ণে,done
+00194,consonant_matra,ণৈ,done
+00195,consonant_matra,ণো,done
+00196,consonant_matra,ণৌ,done
+00197,consonant_matra,তা,done
+00198,consonant_matra,তি,done
+00199,consonant_matra,তী,done
+00200,consonant_matra,তু,done
+00201,consonant_matra,তূ,done
+00202,consonant_matra,তৃ,done
+00203,consonant_matra,তে,done
+00204,consonant_matra,তৈ,done
+00205,consonant_matra,তো,done
+00206,consonant_matra,তৌ,done
+00207,consonant_matra,থা,done
+00208,consonant_matra,থি,done
+00209,consonant_matra,থী,done
+00210,consonant_matra,থু,done
+00211,consonant_matra,থূ,done
+00212,consonant_matra,থৃ,done
+00213,consonant_matra,থে,done
+00214,consonant_matra,থৈ,done
+00215,consonant_matra,থো,done
+00216,consonant_matra,থৌ,done
+00217,consonant_matra,দা,done
+00218,consonant_matra,দি,done
+00219,consonant_matra,দী,done
+00220,consonant_matra,দু,done
+00221,consonant_matra,দূ,done
+00222,consonant_matra,দৃ,done
+00223,consonant_matra,দে,done
+00224,consonant_matra,দৈ,done
+00225,consonant_matra,দো,done
+00226,consonant_matra,দৌ,done
+00227,consonant_matra,ধা,done
+00228,consonant_matra,ধি,done
+00229,consonant_matra,ধী,done
+00230,consonant_matra,ধু,done
+00231,consonant_matra,ধূ,done
+00232,consonant_matra,ধৃ,done
+00233,consonant_matra,ধে,done
+00234,consonant_matra,ধৈ,done
+00235,consonant_matra,ধো,done
+00236,consonant_matra,ধৌ,done
+00237,consonant_matra,না,done
+00238,consonant_matra,নি,done
+00239,consonant_matra,নী,done
+00240,consonant_matra,নু,done
+00241,consonant_matra,নূ,done
+00242,consonant_matra,নৃ,done
+00243,consonant_matra,নে,done
+00244,consonant_matra,নৈ,done
+00245,consonant_matra,নো,done
+00246,consonant_matra,নৌ,done
+00247,consonant_matra,পা,done
+00248,consonant_matra,পি,done
+00249,consonant_matra,পী,done
+00250,consonant_matra,পু,done
+00251,consonant_matra,পূ,done
+00252,consonant_matra,পৃ,done
+00253,consonant_matra,পে,done
+00254,consonant_matra,পৈ,done
+00255,consonant_matra,পো,done
+00256,consonant_matra,পৌ,done
+00257,consonant_matra,ফা,done
+00258,consonant_matra,ফি,done
+00259,consonant_matra,ফী,done
+00260,consonant_matra,ফু,done
+00261,consonant_matra,ফূ,done
+00262,consonant_matra,ফৃ,done
+00263,consonant_matra,ফে,done
+00264,consonant_matra,ফৈ,done
+00265,consonant_matra,ফো,done
+00266,consonant_matra,ফৌ,done
+00267,consonant_matra,বা,done
+00268,consonant_matra,বি,done
+00269,consonant_matra,বী,done
+00270,consonant_matra,বু,done
+00271,consonant_matra,বূ,done
+00272,consonant_matra,বৃ,done
+00273,consonant_matra,বে,done
+00274,consonant_matra,বৈ,done
+00275,consonant_matra,বো,done
+00276,consonant_matra,বৌ,done
+00277,consonant_matra,ভা,done
+00278,consonant_matra,ভি,done
+00279,consonant_matra,ভী,done
+00280,consonant_matra,ভু,done
+00281,consonant_matra,ভূ,done
+00282,consonant_matra,ভৃ,done
+00283,consonant_matra,ভে,done
+00284,consonant_matra,ভৈ,done
+00285,consonant_matra,ভো,done
+00286,consonant_matra,ভৌ,done
+00287,consonant_matra,মা,done
+00288,consonant_matra,মি,done
+00289,consonant_matra,মী,done
+00290,consonant_matra,মু,done
+00291,consonant_matra,মূ,done
+00292,consonant_matra,মৃ,done
+00293,consonant_matra,মে,done
+00294,consonant_matra,মৈ,done
+00295,consonant_matra,মো,done
+00296,consonant_matra,মৌ,done
+00297,consonant_matra,যা,done
+00298,consonant_matra,যি,done
+00299,consonant_matra,যী,done
+00300,consonant_matra,যু,done
+00301,consonant_matra,যূ,done
+00302,consonant_matra,যৃ,done
+00303,consonant_matra,যে,done
+00304,consonant_matra,যৈ,done
+00305,consonant_matra,যো,done
+00306,consonant_matra,যৌ,done
+00307,consonant_matra,রা,done
+00308,consonant_matra,রি,done
+00309,consonant_matra,রী,done
+00310,consonant_matra,রু,done
+00311,consonant_matra,রূ,done
+00312,consonant_matra,রৃ,done
+00313,consonant_matra,রে,done
+00314,consonant_matra,রৈ,done
+00315,consonant_matra,রো,done
+00316,consonant_matra,রৌ,done
+00317,consonant_matra,লা,done
+00318,consonant_matra,লি,done
+00319,consonant_matra,লী,done
+00320,consonant_matra,লু,done
+00321,consonant_matra,লূ,done
+00322,consonant_matra,লৃ,done
+00323,consonant_matra,লে,done
+00324,consonant_matra,লৈ,done
+00325,consonant_matra,লো,done
+00326,consonant_matra,লৌ,done
+00327,consonant_matra,শা,done
+00328,consonant_matra,শি,done
+00329,consonant_matra,শী,done
+00330,consonant_matra,শু,done
+00331,consonant_matra,শূ,done
+00332,consonant_matra,শৃ,done
+00333,consonant_matra,শে,done
+00334,consonant_matra,শৈ,done
+00335,consonant_matra,শো,done
+00336,consonant_matra,শৌ,done
+00337,consonant_matra,ষা,done
+00338,consonant_matra,ষি,done
+00339,consonant_matra,ষী,done
+00340,consonant_matra,ষু,done
+00341,consonant_matra,ষূ,done
+00342,consonant_matra,ষৃ,done
+00343,consonant_matra,ষে,done
+00344,consonant_matra,ষৈ,done
+00345,consonant_matra,ষো,done
+00346,consonant_matra,ষৌ,done
+00347,consonant_matra,সা,done
+00348,consonant_matra,সি,done
+00349,consonant_matra,সী,done
+00350,consonant_matra,সু,done
+00351,consonant_matra,সূ,done
+00352,consonant_matra,সৃ,done
+00353,consonant_matra,সে,done
+00354,consonant_matra,সৈ,done
+00355,consonant_matra,সো,done
+00356,consonant_matra,সৌ,done
+00357,consonant_matra,হা,done
+00358,consonant_matra,হি,done
+00359,consonant_matra,হী,done
+00360,consonant_matra,হু,done
+00361,consonant_matra,হূ,done
+00362,consonant_matra,হৃ,done
+00363,consonant_matra,হে,done
+00364,consonant_matra,হৈ,done
+00365,consonant_matra,হো,done
+00366,consonant_matra,হৌ,done
+00367,consonant_matra,ড়া,done
+00368,consonant_matra,ড়ি,done
+00369,consonant_matra,ড়ী,done
+00370,consonant_matra,ড়ু,done
+00371,consonant_matra,ড়ূ,done
+00372,consonant_matra,ড়ৃ,done
+00373,consonant_matra,ড়ে,done
+00374,consonant_matra,ড়ৈ,done
+00375,consonant_matra,ড়ো,done
+00376,consonant_matra,ড়ৌ,done
+00377,consonant_matra,ঢ়া,done
+00378,consonant_matra,ঢ়ি,done
+00379,consonant_matra,ঢ়ী,done
+00380,consonant_matra,ঢ়ু,done
+00381,consonant_matra,ঢ়ূ,done
+00382,consonant_matra,ঢ়ৃ,done
+00383,consonant_matra,ঢ়ে,done
+00384,consonant_matra,ঢ়ৈ,done
+00385,consonant_matra,ঢ়ো,done
+00386,consonant_matra,ঢ়ৌ,done
+00387,consonant_matra,য়া,done
+00388,consonant_matra,য়ি,done
+00389,consonant_matra,য়ী,done
+00390,consonant_matra,য়ু,done
+00391,consonant_matra,য়ূ,done
+00392,consonant_matra,য়ৃ,done
+00393,consonant_matra,য়ে,done
+00394,consonant_matra,য়ৈ,done
+00395,consonant_matra,য়ো,done
+00396,consonant_matra,য়ৌ,done
+00397,conjunct,ক্য,done
+00398,conjunct,খ্য,done
+00399,conjunct,গ্য,done
+00400,conjunct,ঘ্য,done
+00401,conjunct,চ্য,done
+00402,conjunct,জ্য,done
+00403,conjunct,ঝ্য,done
+00404,conjunct,ট্য,done
+00405,conjunct,ড্য,done
+00406,conjunct,ণ্য,done
+00407,conjunct,ত্য,done
+00408,conjunct,থ্য,done
+00409,conjunct,দ্য,done
+00410,conjunct,ধ্য,done
+00411,conjunct,ন্য,done
+00412,conjunct,প্য,done
+00413,conjunct,ব্য,done
+00414,conjunct,ভ্য,done
+00415,conjunct,ম্য,done
+00416,conjunct,র্য,done
+00417,conjunct,ল্য,done
+00418,conjunct,শ্য,done
+00419,conjunct,ষ্য,done
+00420,conjunct,স্য,done
+00421,conjunct,হ্য,done
+00422,conjunct,ক্র,done
+00423,conjunct,খ্র,done
+00424,conjunct,গ্র,done
+00425,conjunct,ঘ্র,done
+00426,conjunct,চ্র,done
+00427,conjunct,জ্র,done
+00428,conjunct,ট্র,done
+00429,conjunct,ড্র,done
+00430,conjunct,ত্র,done
+00431,conjunct,থ্র,done
+00432,conjunct,দ্র,done
+00433,conjunct,ধ্র,done
+00434,conjunct,ন্র,done
+00435,conjunct,প্র,done
+00436,conjunct,ফ্র,done
+00437,conjunct,ব্র,done
+00438,conjunct,ভ্র,done
+00439,conjunct,ম্র,done
+00440,conjunct,শ্র,done
+00441,conjunct,স্র,done
+00442,conjunct,হ্র,done
+00443,conjunct,ক্ক,done
+00444,conjunct,গ্গ,done
+00445,conjunct,চ্চ,done
+00446,conjunct,জ্জ,done
+00447,conjunct,ট্ট,done
+00448,conjunct,ড্ড,done
+00449,conjunct,ত্ত,done
+00450,conjunct,দ্দ,done
+00451,conjunct,ন্ন,done
+00452,conjunct,প্প,done
+00453,conjunct,ব্ব,done
+00454,conjunct,ম্ম,done
+00455,conjunct,ল্ল,done
+00456,conjunct,স্স,done
+00457,conjunct,ক্ত,done
+00458,conjunct,ক্ন,done
+00459,conjunct,ক্ম,done
+00460,conjunct,ক্ষ,done
+00461,conjunct,ক্স,done
+00462,conjunct,গ্ন,done
+00463,conjunct,গ্ম,done
+00464,conjunct,ঘ্ন,done
+00465,conjunct,ঙ্ক,done
+00466,conjunct,ঙ্খ,done
+00467,conjunct,ঙ্গ,done
+00468,conjunct,ঙ্ঘ,done
+00469,conjunct,চ্ছ,done
+00470,conjunct,জ্ঞ,done
+00471,conjunct,ঞ্চ,done
+00472,conjunct,ঞ্ছ,done
+00473,conjunct,ঞ্জ,done
+00474,conjunct,ঞ্ঝ,done
+00475,conjunct,ট্ঠ,done
+00476,conjunct,ড্ঢ,done
+00477,conjunct,ণ্ট,done
+00478,conjunct,ণ্ঠ,done
+00479,conjunct,ণ্ড,done
+00480,conjunct,ণ্ঢ,done
+00481,conjunct,ণ্ণ,done
+00482,conjunct,ত্থ,done
+00483,conjunct,ত্ন,done
+00484,conjunct,ত্ম,done
+00485,conjunct,দ্ধ,done
+00486,conjunct,দ্ব,done
+00487,conjunct,দ্ম,done
+00488,conjunct,দ্ভ,done
+00489,conjunct,ন্ত,done
+00490,conjunct,ন্থ,done
+00491,conjunct,ন্দ,done
+00492,conjunct,ন্ধ,done
+00493,conjunct,ন্ম,done
+00494,conjunct,ন্ব,done
+00495,conjunct,প্ত,done
+00496,conjunct,প্ন,done
+00497,conjunct,প্ম,done
+00498,conjunct,প্স,done
+00499,conjunct,ব্দ,done
+00500,conjunct,ব্ধ,done
+00501,conjunct,ব্ন,done
+00502,conjunct,ভ্ন,done
+00503,conjunct,ম্ন,done
+00504,conjunct,ম্প,done
+00505,conjunct,ম্ফ,done
+00506,conjunct,ম্ব,done
+00507,conjunct,ম্ভ,done
+00508,conjunct,ল্ক,done
+00509,conjunct,ল্গ,done
+00510,conjunct,ল্ট,done
+00511,conjunct,ল্ড,done
+00512,conjunct,ল্প,done
+00513,conjunct,ল্ফ,done
+00514,conjunct,ল্ব,done
+00515,conjunct,ল্ম,done
+00516,conjunct,শ্চ,done
+00517,conjunct,শ্ছ,done
+00518,conjunct,শ্ন,done
+00519,conjunct,শ্ব,done
+00520,conjunct,শ্ম,done
+00521,conjunct,ষ্ক,done
+00522,conjunct,ষ্ট,done
+00523,conjunct,ষ্ঠ,done
+00524,conjunct,ষ্ণ,done
+00525,conjunct,ষ্প,done
+00526,conjunct,ষ্ফ,done
+00527,conjunct,ষ্ম,done
+00528,conjunct,স্ক,done
+00529,conjunct,স্খ,done
+00530,conjunct,স্ট,done
+00531,conjunct,স্ত,done
+00532,conjunct,স্থ,done
+00533,conjunct,স্ন,done
+00534,conjunct,স্প,done
+00535,conjunct,স্ফ,done
+00536,conjunct,স্ব,done
+00537,conjunct,স্ম,done
+00538,conjunct,হ্ন,done
+00539,conjunct,হ্ম,done
+00540,conjunct,হ্য,done
+00541,conjunct,হ্র,done
+00542,conjunct,হ্ল,done
+00543,conjunct,ক্ত্র,done
+00544,conjunct,ক্ষ্ণ,done
+00545,conjunct,ক্ষ্ম,done
+00546,conjunct,ঙ্ক্ষ,done
+00547,conjunct,ন্ত্র,done
+00548,conjunct,ন্ত্য,done
+00549,conjunct,ন্দ্র,done
+00550,conjunct,ন্দ্য,done
+00551,conjunct,ন্ধ্র,done
+00552,conjunct,ন্ধ্য,done
+00553,conjunct,ম্প্র,done
+00554,conjunct,ম্ব্র,done
+00555,conjunct,ষ্ট্র,done
+00556,conjunct,ষ্ঠ্য,done
+00557,conjunct,স্ত্র,done
+00558,conjunct,স্ত্য,done
+00559,conjunct,স্থ্য,done
+00560,conjunct,স্প্র,done
+00561,word,আমি,done
+00562,word,তুমি,done
+00563,word,সে,done
+00564,word,আমরা,done
+00565,word,তোমরা,done
+00566,word,তারা,done
+00567,word,এটা,done
+00568,word,ওটা,done
+00569,word,সেটা,done
+00570,word,কি,done
+00571,word,কে,done
+00572,word,কেন,done
+00573,word,কোথায়,done
+00574,word,কখন,done
+00575,word,কীভাবে,done
+00576,word,হ্যাঁ,done
+00577,word,না,done
+00578,word,ঠিক,done
+00579,word,ভুল,done
+00580,word,ভালো,done
+00581,word,খারাপ,done
+00582,word,বড়,done
+00583,word,ছোট,done
+00584,word,নতুন,done
+00585,word,পুরনো,done
+00586,word,সুন্দর,done
+00587,word,জল,done
+00588,word,পানি,done
+00589,word,খাবার,done
+00590,word,ভাত,done
+00591,word,রুটি,done
+00592,word,মাছ,done
+00593,word,মাংস,done
+00594,word,বাড়ি,done
+00595,word,ঘর,done
+00596,word,দরজা,done
+00597,word,জানালা,done
+00598,word,ছাদ,done
+00599,word,মাটি,done
+00600,word,গাছ,done
+00601,word,ফুল,done
+00602,word,পাতা,done
+00603,word,ফল,done
+00604,word,বীজ,done
+00605,word,মা,done
+00606,word,বাবা,done
+00607,word,ভাই,done
+00608,word,বোন,done
+00609,word,দাদা,done
+00610,word,দিদি,done
+00611,word,বন্ধু,done
+00612,word,শিক্ষক,done
+00613,word,ছাত্র,done
+00614,word,ডাক্তার,done
+00615,word,দিন,done
+00616,word,রাত,done
+00617,word,সকাল,done
+00618,word,বিকাল,done
+00619,word,সন্ধ্যা,done
+00620,word,আজ,done
+00621,word,কাল,done
+00622,word,পরশু,done
+00623,word,গতকাল,done
+00624,word,এক,done
+00625,word,দুই,done
+00626,word,তিন,done
+00627,word,চার,done
+00628,word,পাঁচ,done
+00629,word,ছয়,done
+00630,word,সাত,done
+00631,word,আট,done
+00632,word,নয়,done
+00633,word,দশ,done
+00634,word,লাল,done
+00635,word,নীল,done
+00636,word,সবুজ,done
+00637,word,হলুদ,done
+00638,word,সাদা,done
+00639,word,কালো,done
+00640,word,যাওয়া,done
+00641,word,আসা,done
+00642,word,খাওয়া,done
+00643,word,পড়া,done
+00644,word,লেখা,done
+00645,word,দেখা,done
+00646,word,শোনা,done
+00647,word,বলা,done
+00648,word,করা,done
+00649,word,হওয়া,done
+00650,word,থাকা,done
+00651,word,দেওয়া,done
+00652,word,নেওয়া,done
+00653,word,পাওয়া,done
+00654,sentence,আমার নাম বাংলা।,done
+00655,sentence,বাংলাদেশ আমার দেশ।,done
+00656,sentence,আজ আবহাওয়া ভালো।,done
+00657,sentence,তুমি কেমন আছো?,done
+00658,sentence,আমি ভালো আছি।,done
+00659,sentence,ধন্যবাদ তোমাকে।,done
+00660,sentence,আবার দেখা হবে।,done
+00661,sentence,শুভ সকাল।,done
+00662,sentence,শুভ রাত্রি।,done
+00663,sentence,খুব ভালো লাগছে।,done
+00664,sentence,একটু দাঁড়াও।,done
+00665,sentence,আমি আসছি।,done
+00666,sentence,তুমি কোথায় যাচ্ছ?,done
+00667,sentence,এটা কী?,done
+00668,sentence,ওটা কার?,done
+00669,sentence,আমি জানি না।,done
+00670,sentence,তুমি জানো?,done
+00671,sentence,"হ্যাঁ, আমি জানি।",done
+00672,sentence,"না, আমি জানি না।",done
+00673,sentence,দয়া করে বলুন।,done
+00674,carrier,এটি আমি।,done
+00675,carrier,আমি আমি বলছি।,done
+00676,carrier,এখানে আমি আছে।,done
+00677,carrier,এটি তুমি।,done
+00678,carrier,আমি তুমি বলছি।,done
+00679,carrier,এখানে তুমি আছে।,done
+00680,carrier,এটি সে।,done
+00681,carrier,আমি সে বলছি।,done
+00682,carrier,এখানে সে আছে।,done
+00683,carrier,এটি আমরা।,done
+00684,carrier,আমি আমরা বলছি।,done
+00685,carrier,এখানে আমরা আছে।,done
+00686,carrier,এটি তোমরা।,done
+00687,carrier,আমি তোমরা বলছি।,done
+00688,carrier,এখানে তোমরা আছে।,done
+00689,carrier,এটি তারা।,done
+00690,carrier,আমি তারা বলছি।,done
+00691,carrier,এখানে তারা আছে।,done
+00692,carrier,এটি এটা।,done
+00693,carrier,আমি এটা বলছি।,done
+00694,carrier,এখানে এটা আছে।,done
+00695,carrier,এটি ওটা।,done
+00696,carrier,আমি ওটা বলছি।,done
+00697,carrier,এখানে ওটা আছে।,done
+00698,carrier,এটি সেটা।,done
+00699,carrier,আমি সেটা বলছি।,done
+00700,carrier,এখানে সেটা আছে।,done
+00701,carrier,এটি কি।,done
+00702,carrier,আমি কি বলছি।,done
+00703,carrier,এখানে কি আছে।,done
+00704,carrier,এটি কে।,done
+00705,carrier,আমি কে বলছি।,done
+00706,carrier,এখানে কে আছে।,done
+00707,carrier,এটি কেন।,done
+00708,carrier,আমি কেন বলছি।,done
+00709,carrier,এখানে কেন আছে।,done
+00710,carrier,এটি কোথায়।,done
+00711,carrier,আমি কোথায় বলছি।,done
+00712,carrier,এখানে কোথায় আছে।,done
+00713,carrier,এটি কখন।,done
+00714,carrier,আমি কখন বলছি।,done
+00715,carrier,এখানে কখন আছে।,done
+00716,carrier,এটি কীভাবে।,done
+00717,carrier,আমি কীভাবে বলছি।,done
+00718,carrier,এখানে কীভাবে আছে।,done
+00719,carrier,এটি হ্যাঁ।,done
+00720,carrier,আমি হ্যাঁ বলছি।,done
+00721,carrier,এখানে হ্যাঁ আছে।,done
+00722,carrier,এটি না।,done
+00723,carrier,আমি না বলছি।,done
+00724,carrier,এখানে না আছে।,done
+00725,carrier,এটি ঠিক।,done
+00726,carrier,আমি ঠিক বলছি।,done
+00727,carrier,এখানে ঠিক আছে।,done
+00728,carrier,এটি ভুল।,done
+00729,carrier,আমি ভুল বলছি।,done
+00730,carrier,এখানে ভুল আছে।,done
+00731,carrier,এটি ভালো।,done
+00732,carrier,আমি ভালো বলছি।,done
+00733,carrier,এখানে ভালো আছে।,done

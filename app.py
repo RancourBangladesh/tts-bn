@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-Bengali TTS Recording Flask Application
+Bengali TTS Recording Flask Application - Modern Studio Edition
 
 Web-based audio recorder for collecting voice samples.
 Features:
-- Browser-based recording using MediaRecorder API
+- Modern UI with real-time waveform visualization
 - Real-time audio quality checks
 - Prompt navigation and status tracking
+- GPU status monitoring
+- Re-record functionality for previous recordings
 - Metadata management
 """
 
@@ -14,11 +16,23 @@ import os
 import csv
 import json
 import wave
+import glob
 import subprocess
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory
 
 app = Flask(__name__)
+
+# Check for GPU availability
+GPU_AVAILABLE = False
+GPU_NAME = "CPU Mode"
+try:
+    import torch
+    if torch.cuda.is_available():
+        GPU_AVAILABLE = True
+        GPU_NAME = torch.cuda.get_device_name(0)
+except ImportError:
+    pass
 
 # Configuration
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -97,7 +111,13 @@ def append_metadata(metadata):
 
 @app.route('/')
 def index():
-    """Render the recording interface."""
+    """Render the modern recording interface."""
+    return render_template('recorder_modern.html')
+
+
+@app.route('/classic')
+def classic_index():
+    """Render the classic recording interface."""
     return render_template('recorder.html')
 
 
@@ -234,6 +254,63 @@ def get_stats():
     stats['total_duration_minutes'] = round(total_duration / 60, 2)
     
     return jsonify({'ok': True, 'stats': stats})
+
+
+@app.route('/api/gpu-status')
+def get_gpu_status():
+    """Get GPU/CUDA availability status."""
+    return jsonify({
+        'ok': True,
+        'gpu_available': GPU_AVAILABLE,
+        'gpu_name': GPU_NAME
+    })
+
+
+@app.route('/api/recording/<prompt_id>')
+def get_recording(prompt_id):
+    """Get a recording by prompt ID."""
+    # Search for the recording file
+    pattern = os.path.join(RECORDINGS_DIR, f'*_{prompt_id}.wav')
+    matches = glob.glob(pattern)
+    
+    if matches:
+        # Return the most recent one
+        latest = max(matches, key=os.path.getctime)
+        filename = os.path.basename(latest)
+        return send_from_directory(RECORDINGS_DIR, filename)
+    
+    return jsonify({'ok': False, 'error': 'Recording not found'}), 404
+
+
+@app.route('/api/recording/<prompt_id>', methods=['DELETE'])
+def delete_recording(prompt_id):
+    """Delete a recording by prompt ID (for re-recording)."""
+    # Search for the recording file
+    pattern = os.path.join(RECORDINGS_DIR, f'*_{prompt_id}.wav')
+    matches = glob.glob(pattern)
+    
+    deleted_count = 0
+    for match in matches:
+        if is_safe_path(RECORDINGS_DIR, match):
+            try:
+                os.remove(match)
+                deleted_count += 1
+            except OSError:
+                pass
+    
+    # Update prompt status back to pending
+    prompts = load_prompts()
+    for prompt in prompts:
+        if prompt['prompt_id'] == prompt_id:
+            prompt['status'] = 'pending'
+            break
+    save_prompts(prompts)
+    
+    return jsonify({
+        'ok': True,
+        'deleted': deleted_count,
+        'message': f'Deleted {deleted_count} recording(s)'
+    })
 
 
 @app.route('/recordings/<filename>')
@@ -382,12 +459,18 @@ def navigate_prompts():
 
 if __name__ == '__main__':
     print("\n" + "=" * 60)
-    print("Bengali TTS Recording Server")
+    print("🎙️  Bengali TTS Studio - Professional Recording Server")
     print("=" * 60)
-    print(f"\nDataset directory: {DATASET_DIR}")
-    print(f"Recordings directory: {RECORDINGS_DIR}")
-    print(f"Prompts file: {PROMPTS_FILE}")
-    print(f"Audio format: 48kHz, mono, 16-bit PCM")
+    print(f"\n📁 Dataset directory: {DATASET_DIR}")
+    print(f"📁 Recordings directory: {RECORDINGS_DIR}")
+    print(f"📁 Prompts file: {PROMPTS_FILE}")
+    print(f"🎵 Audio format: 48kHz, mono, 16-bit PCM")
+    
+    # GPU Status
+    if GPU_AVAILABLE:
+        print(f"🎮 GPU: {GPU_NAME} (CUDA enabled)")
+    else:
+        print("💻 GPU: Not available (CPU mode)")
     
     # Check if prompts exist
     prompts = load_prompts()
@@ -396,8 +479,9 @@ if __name__ == '__main__':
     else:
         print(f"\n✓ Loaded {len(prompts)} prompts")
     
-    print("\nStarting server at http://localhost:5000")
-    print("Press Ctrl+C to stop\n")
+    print("\n🌐 Modern UI: http://localhost:5000")
+    print("🌐 Classic UI: http://localhost:5000/classic")
+    print("\nPress Ctrl+C to stop\n")
     print("=" * 60 + "\n")
     
     # Note: Set debug=False in production environments

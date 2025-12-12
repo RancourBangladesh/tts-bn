@@ -4,7 +4,9 @@ Training Configuration for Bengali TTS
 
 Comprehensive training settings optimized for:
 - Training stability (prevents collapse)
-- GTX 1660 Super GPU (6GB VRAM)
+- Multiple GPU support:
+  - GTX 1660 Super (6GB VRAM)
+  - RTX 5060 Ti (16GB VRAM) - recommended
 - Natural Bangladeshi Bengali voice
 """
 
@@ -47,13 +49,20 @@ class OptimizerConfig:
 
 @dataclass
 class BatchingConfig:
-    """Batching configuration for GPU stability (GTX 1660 Super 6GB)."""
+    """Batching configuration for GPU stability.
     
-    # Batch size (reduced to fit in 6GB VRAM)
-    batch_size: int = 8  # Reduced from 16-32
+    Optimized settings for different GPUs:
+    - GTX 1660 Super 6GB: batch_size=8, gradient_accumulation=4
+    - RTX 5060 Ti 16GB: batch_size=16, gradient_accumulation=4
+    """
+    
+    # Batch size (adjust based on VRAM)
+    # GTX 1660 Super 6GB: 8
+    # RTX 5060 Ti 16GB: 16
+    batch_size: int = 16  # Default for RTX 5060 Ti 16GB
     
     # Gradient accumulation steps (effective batch size = batch_size * accumulation_steps)
-    gradient_accumulation_steps: int = 4  # Effective batch = 32
+    gradient_accumulation_steps: int = 4  # Effective batch = 64 for 5060 Ti
     
     # Number of workers for data loading
     num_workers: int = 4

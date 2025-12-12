@@ -8,8 +8,9 @@ A complete system for creating your own Bengali Text-to-Speech model with your o
 - 📝 **Complete Bengali Phoneme Coverage**: All vowels, consonants, matras, and 150+ conjuncts (juktakkhor)
 - 🔤 **G2P Engine**: Convert Bengali text to phoneme sequences with number expansion
 - 🎯 **Smart Prompts**: Automatically generated prompts for balanced phoneme coverage
+- 📦 **Dataset Optimizer**: Optimizes and curates text data for fluent TTS training
 - 🔊 **Audio QA**: Automatic quality checks (duration, loudness, clipping, noise detection)
-- 🚀 **GPU Accelerated**: CUDA support for training (GTX 1660 Super compatible)
+- 🚀 **GPU Accelerated**: CUDA support for training (GTX 1660 Super / RTX 5060 Ti compatible)
 - 📊 **Training Stability**: Warmup, cosine decay, gradient accumulation, AMP, early stopping
 - 🎚️ **Waveform Preview**: Real-time audio visualization and level metering
 
@@ -18,12 +19,13 @@ A complete system for creating your own Bengali Text-to-Speech model with your o
 ## Table of Contents
 
 1. [Setup](#setup)
-2. [Recording](#recording)
-3. [Preprocessing](#preprocessing)
-4. [Training](#training)
-5. [Inference](#inference)
-6. [Project Structure](#project-structure)
-7. [Configuration](#configuration)
+2. [Dataset Optimization](#dataset-optimization)
+3. [Recording](#recording)
+4. [Preprocessing](#preprocessing)
+5. [Training](#training)
+6. [Inference](#inference)
+7. [Project Structure](#project-structure)
+8. [Configuration](#configuration)
 
 ---
 
@@ -32,7 +34,7 @@ A complete system for creating your own Bengali Text-to-Speech model with your o
 ### 1. System Requirements
 
 - **Python**: 3.8+
-- **GPU**: GTX 1660 Super (6GB) or better (for training)
+- **GPU**: GTX 1660 Super (6GB) or RTX 5060 Ti (16GB recommended) for training
 - **ffmpeg**: Required for audio processing
 - **OS**: Linux/Windows/macOS
 
@@ -61,17 +63,59 @@ brew install ffmpeg
 ### 3. Install PyTorch with CUDA (for training)
 
 ```bash
-# For GTX 1660 Super, use CUDA 11.8:
+# For GTX 1660 Super / RTX 5060 Ti, use CUDA 11.8 or 12.1:
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
-### 4. Generate Recording Prompts
+### 4. Optimize Your Dataset (NEW!)
 
 ```bash
-python generate_prompts.py
+python optimize_dataset.py
 ```
 
-This creates `dataset/prompts/prompts.csv` with comprehensive Bengali phoneme coverage.
+This creates an optimized dataset in `optimized_dataset/` with:
+- Balanced phoneme coverage
+- Optimal sentence lengths for TTS
+- Deduplicated and quality-filtered text
+- Recording prompts ready to use
+
+---
+
+## Dataset Optimization
+
+The `optimize_dataset.py` script processes your text data to create the most fluent, balanced dataset for TTS training.
+
+### What it does:
+
+1. **Loads all text sources**: 12k.txt, bengali_sentences_6000_metadata.jsonl, prompts.csv
+2. **Normalizes text**: Unicode cleanup, punctuation normalization
+3. **Removes duplicates**: Exact and near-duplicate detection
+4. **Analyzes phonemes**: Ensures coverage of all Bengali sounds
+5. **Calculates quality scores**: Based on length, phoneme diversity, completeness
+6. **Balances the dataset**: Optimal mix of sentence types and lengths
+
+### Running the optimizer:
+
+```bash
+python optimize_dataset.py
+```
+
+### Output files:
+
+| File | Description |
+|------|-------------|
+| `optimized_sentences.txt` | Final sentences (one per line) |
+| `optimized_metadata.csv` | Sentences with metadata (length, type, score) |
+| `optimized_training.jsonl` | JSONL format for training pipelines |
+| `recording_prompts.csv` | Ready-to-use prompts for recording app |
+| `dataset_report.txt` | Detailed statistics and coverage analysis |
+
+### Recommendations for RTX 5060 Ti 16GB:
+
+- **Optimal dataset size**: 8,000 sentences (~8-10 hours of audio)
+- **Expected recording time**: 16-20 hours
+- **Training batch size**: 16 with gradient accumulation 4
+- **Estimated training time**: 24-48 hours
 
 ---
 
@@ -232,6 +276,7 @@ bengali_tts_custom/
 ├── app.py                  # Flask recording server
 ├── g2p.py                  # Grapheme-to-Phoneme engine
 ├── generate_prompts.py     # Prompt generation script
+├── optimize_dataset.py     # Dataset optimization script (NEW!)
 ├── audio_utils.py          # Audio processing utilities
 ├── prepare_training.py     # Training data preparation
 ├── training_config.py      # Training configuration
@@ -242,6 +287,16 @@ bengali_tts_custom/
 │   └── recorder.html       # Recording UI
 ├── static/
 │   └── style.css           # UI styling
+├── text set/               # Source text data
+│   ├── 12k.txt             # 12,500+ sentences (literary)
+│   ├── bengali_sentences_6000_metadata.jsonl  # 5,000 call center sentences
+│   └── prompts.csv         # 733 phoneme prompts
+├── optimized_dataset/      # Optimized output (generated)
+│   ├── optimized_sentences.txt
+│   ├── optimized_metadata.csv
+│   ├── optimized_training.jsonl
+│   ├── recording_prompts.csv
+│   └── dataset_report.txt
 └── dataset/
     ├── recordings/         # Raw recordings (48kHz)
     ├── prompts/            # Generated prompts
@@ -262,17 +317,17 @@ bengali_tts_custom/
 | Bit Depth | 16-bit | 16-bit |
 | Target LUFS | -14 dB | -14 dB |
 
-### Training Settings (GTX 1660 Super Optimized)
+### Training Settings
 
-| Setting | Value |
-|---------|-------|
-| Batch Size | 8 |
-| Gradient Accumulation | 4 (effective: 32) |
-| Generator LR | 1e-4 |
-| Discriminator LR | 5e-5 |
-| Warmup Steps | 4000 |
-| AMP | Enabled |
-| Checkpoint Interval | 1000 steps |
+| Setting | GTX 1660 Super (6GB) | RTX 5060 Ti (16GB) |
+|---------|---------------------|-------------------|
+| Batch Size | 8 | 16 |
+| Gradient Accumulation | 4 (effective: 32) | 4 (effective: 64) |
+| Generator LR | 1e-4 | 1e-4 |
+| Discriminator LR | 5e-5 | 5e-5 |
+| Warmup Steps | 4000 | 4000 |
+| AMP | Enabled | Enabled |
+| Checkpoint Interval | 1000 steps | 1000 steps |
 
 ### Quality Thresholds
 

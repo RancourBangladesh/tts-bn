@@ -136,6 +136,27 @@ def append_metadata(metadata):
         f.write(json.dumps(metadata, ensure_ascii=False) + '\n')
 
 
+def remove_metadata_for_prompt(prompt_id):
+    """Remove all metadata entries for a specific prompt_id (for re-recording)."""
+    if not os.path.exists(METADATA_FILE):
+        return
+    
+    # Read all metadata
+    metadata_entries = []
+    with open(METADATA_FILE, 'r', encoding='utf-8') as f:
+        for line in f:
+            if line.strip():
+                entry = json.loads(line)
+                # Keep entries that don't match the prompt_id
+                if entry.get('prompt_id') != prompt_id:
+                    metadata_entries.append(entry)
+    
+    # Write back only the entries we want to keep
+    with open(METADATA_FILE, 'w', encoding='utf-8') as f:
+        for entry in metadata_entries:
+            f.write(json.dumps(entry, ensure_ascii=False) + '\n')
+
+
 @app.route('/')
 def index():
     """Render the modern recording interface."""
@@ -321,6 +342,9 @@ def delete_recording(prompt_id):
                 deleted_count += 1
             except OSError:
                 pass
+    
+    # Remove metadata entries for this prompt_id to avoid duplicates
+    remove_metadata_for_prompt(prompt_id)
     
     # Update prompt status back to pending
     prompts = load_prompts()
